@@ -8,7 +8,7 @@ endif()
 add_executable(gry_server src/main.cxx src/web.cxx src/source.cxx src/repository.cxx)
 include_directories(include)
 
-find_package(Boost COMPONENTS filesystem thread)
+find_package(Boost COMPONENTS filesystem thread system chrono)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
   link_directories(${Boost_LIBRARY_DIRS})

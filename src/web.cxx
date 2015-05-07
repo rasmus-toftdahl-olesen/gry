@@ -1,6 +1,7 @@
 #include <gry/web.h>
 #include <gry/repository.h>
 #include <boost/algorithm/string.hpp>
+#include <boost/chrono/chrono_io.hpp>
 #include <pion/http/response_writer.hpp>
 
 using namespace gry;
@@ -67,7 +68,28 @@ void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
         {
             writer->write ( "{ directory: '" );
             writer->write ( source->directory().native() );
+            writer->write ( "', samples: '" );
+            writer->write ( source->numberOfSamples() );
+            writer->write ( "', from: '" );
+            writer->write ( source->oldest().get<0>() );
+            writer->write ( "', to: '" );
+            writer->write ( source->newest().get<0>() );
             writer->write ( "' }" );
+        }
+        else if ( sourceCmd == "add" )
+        {
+            double value = boost::lexical_cast<double> ( _request->get_query_string() );
+            Source::Timestamp timestamp = source->add ( value );
+
+            writer->write ( "{ timestamp: '" );
+            writer->write ( timestamp );
+            writer->write ( "'," );
+            writer->write ( value );
+            writer->write ( "' }" );
+        }
+        else if ( sourceCmd == "data" )
+        {
+            source->writeValues ( writer );
         }
         else
         {
