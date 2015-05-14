@@ -12,10 +12,13 @@ using namespace pion::tcp;
 using namespace boost;
 
 WebServer::WebServer( pion::scheduler & _scheduler, ushort _portNumber )
-    : m_server(_scheduler, _portNumber)
+    : m_logger ( log4cpp::Category::getInstance("gry.web") ),
+      m_server(_scheduler, _portNumber)
 {
     m_server.add_resource("/data",
                           boost::bind(&WebServer::requestHandler, this, _1, _2));
+    m_server.add_resource("/live",
+                          boost::bind(&WebServer::requestHandlerLive, this, _1, _2));
     m_server.add_resource("/",
                           boost::bind(&WebServer::requestHandlerStatic, this, _1, _2));
 }
@@ -185,4 +188,23 @@ void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
         writer->write ( "\"} " );
     }
     writer->send();
+}
+
+void WebServer::requestHandlerLive(request_ptr & _request, connection_ptr & _conn)
+{
+    Repository & repo = Repository::instance();
+    SourcePtr source;
+    std::string sourceName = _request->get_resource().substr(6);
+    source = repo.findSourceByName(sourceName);
+    if ( source )
+    {
+
+        m_logger << log4cpp::Priority::INFO << "Subscription to " << sourceName << " from " << _conn->get_remote_ip();
+
+        source->subscribe ( _conn );
+    }
+    else
+    {
+        m_logger << log4cpp::Priority::WARN << "Subscription to non-existing source " << sourceName << " from " << _conn->get_remote_ip();
+    }
 }

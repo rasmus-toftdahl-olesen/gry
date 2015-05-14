@@ -1,5 +1,7 @@
 #include <gry/source.h>
 #include <boost/thread/lock_guard.hpp>
+#include <pion/tcp/stream.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace gry;
 using namespace boost::filesystem;
@@ -66,6 +68,14 @@ Source::Value Source::newest()
     }
 }
 
+void operator<< ( pion::tcp::stream_buffer & _stream, const std::string & _value )
+{
+    for ( std::string::size_type i = 0; i < _value.length(); ++i )
+    {
+        _stream.sputc ( _value[i] );
+    }
+}
+
 Source::Timestamp Source::add ( double _value )
 {
     boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
@@ -73,6 +83,14 @@ Source::Timestamp Source::add ( double _value )
 
     m_values.push_back ( Value(now, _value) );
 
+    for ( std::vector<pion::tcp::connection_ptr>::iterator it = m_listeners.begin(); it != m_listeners.end(); ++it )
+    {
+        std::string valueAsString ( boost::lexical_cast<std::string>(_value) );
+        pion::tcp::stream_buffer stream ( *it );
+        stream << "data: ";
+        stream << valueAsString;
+        stream << "\n\n";
+    }
     return now;
 }
 
@@ -101,4 +119,17 @@ void Source::writeValues ( pion::http::response_writer_ptr _writer )
         _writer->write ( " }\n" );
     }
     _writer->write ( "]\n" );
+}
+
+
+void Source::subscribe ( pion::tcp::connection_ptr & _conn )
+{
+    _conn->set_lifecycle(pion::tcp::connection::LIFECYCLE_KEEPALIVE);
+    pion::tcp::stream_buffer stream ( _conn );
+    stream << "HTTP/1.1 200 OK\r\n";
+    stream << "Content-Type: text/event-stream\r\n";
+    stream << "Connection: keep-alive\r\n";
+    stream << "\r\n";
+
+    m_listeners.push_back ( _conn );
 }

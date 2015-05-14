@@ -54,15 +54,18 @@
     <script src="/smoothie.js"></script>
     <script>
     var known_sources = {};
-
+    function show_error ( errorText )
+    {
+        console.log ( errorText );
+        $('#error-content').html ( errorText );
+        $('#error').show ();
+    }
       $( document ).ready(function() {
           $( document ).ajaxError (
               function(event, request, settings, thrownError)
               {
                   var logText = 'AJAX error reported for ' + '<a href="' + settings.url + '">' + settings.url + '</a> (' + thrownError + ')';
-                  console.log ( logText );
-                  $('#error-content').html ( logText );
-                  $('#error').show ();
+                  show_error ( logText );
               } );
 
           refresh_sources();
@@ -80,25 +83,34 @@
                      var name = data['sources'][i];
                      if ( !(name in known_sources) )
                      {
-                         $('main').append ( '<section data-source="' + name + '"><header>' + name + '</header><canvas></canvas></section>' );
-                         var smoothie = new SmoothieChart();
+                         $('main').append ( '<section data-source="' + name + '"><header>' + name + '</header><canvas width="900"></canvas></section>' );
+                         var smoothie = new SmoothieChart({millisPerPixel:100});
                          var series = new TimeSeries();
                          smoothie.addTimeSeries(series, { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.4)', lineWidth:3 });
-                         known_sources[name] = { 'smoothie': smoothie, 'series': series };
-                         smoothie.streamTo ( $("section[data-source='" + name + "'] > canvas").get(0) );
-                         refresh_source_info ( name );
+                         var eventSource = new EventSource('/live/' + name)
+                         eventSource.series = series;
+                         eventSource.onmessage = function(e)
+                         {
+                             this.series.append( new Date(), e.data );
+                         }
+                         eventSource.onerror = function(e)
+                         {
+                             show_error ( 'ERROR on ' + name + ' data sources\' live events.' );
+                         }
 
-                         /*
-                         setInterval(function(name) {
-                             known_sources[name]['series'].append(new Date().getTime(), Math.random());
-                         }, 1000, name);
-                         */
+                         smoothie.streamTo ( $("section[data-source='" + name + "'] > canvas").get(0) );
+
+                         known_sources[name] = { 'smoothie': smoothie, 'series': series,
+                                                 'live': eventSource };
+
+                         refresh_source_info ( name );
                      }
                  }
                  for ( var name in known_sources )
                  {
                      if ( data['sources'].indexOf(name) == -1 )
                      {
+                         known_sources[name]['live'].close();
                          delete known_sources[name];
                          $("section[data-source='" + name + "']").remove();
                      }
