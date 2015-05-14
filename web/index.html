@@ -4,23 +4,119 @@
     <title>Gry</title>
     <style type="text/css">
       html {
-      font-family: Trebuchet, sans-serif;
-      color: black;
-      background-color: white;
+          font-family: Trebuchet MS, sans-serif;
+          color: black;
+          background-color: white;
       }
       body {
-      margin: 0;
+          margin: 0;
       }
-      header {
-      padding: 3px;
-      width: 100%;
-      color: white;
-      background-color: #00bfff;
+      body > header {
+          padding: 3px 0 3px 0;
+          width: 100%;
+          color: white;
+          background-color: #00bfff;
       }
-      header h1 {
-      margin: 0;
+      body > header h1 {
+          margin: 0;
+      }
+      section {
+          margin: 1em;
+          padding: 0.5em;
+      }
+      #error {
+          background-color: red;
+          color: white;
+          display: none;
+      }
+      #error a {
+          color: white;
+          font-weight: bold;
+      }
+      a {
+          color: #00bfff;
+      }
+      main section header {
+          font-size: 200%;
+      }
+      main section {
+          width: 90%;
+      }
+      main section canvas {
+      }
+      footer {
+          background-color: #ccc;
+          color: #333;
+          padding: 10px;
       }
     </style>
+    <script src="/jquery.js"></script>
+    <script src="/smoothie.js"></script>
+    <script>
+    var known_sources = {};
+
+      $( document ).ready(function() {
+          $( document ).ajaxError (
+              function(event, request, settings, thrownError)
+              {
+                  var logText = 'AJAX error reported for ' + '<a href="' + settings.url + '">' + settings.url + '</a> (' + thrownError + ')';
+                  console.log ( logText );
+                  $('#error-content').html ( logText );
+                  $('#error').show ();
+              } );
+
+          refresh_sources();
+          setInterval(refresh_sources, 15 * 1000);
+      });
+
+      function refresh_sources ()
+      {
+          console.log ( 'Refresh sources');
+          $.ajax ( { url: '/data/sources'} ).done (
+             function(data)
+              {
+                 for ( var i = 0; i < data['sources'].length; i++ )
+                 {
+                     var name = data['sources'][i];
+                     if ( !(name in known_sources) )
+                     {
+                         $('main').append ( '<section data-source="' + name + '"><header>' + name + '</header><canvas></canvas></section>' );
+                         var smoothie = new SmoothieChart();
+                         var series = new TimeSeries();
+                         smoothie.addTimeSeries(series, { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.4)', lineWidth:3 });
+                         known_sources[name] = { 'smoothie': smoothie, 'series': series };
+                         smoothie.streamTo ( $("section[data-source='" + name + "'] > canvas").get(0) );
+                         refresh_source_info ( name );
+
+                         /*
+                         setInterval(function(name) {
+                             known_sources[name]['series'].append(new Date().getTime(), Math.random());
+                         }, 1000, name);
+                         */
+                     }
+                 }
+                 for ( var name in known_sources )
+                 {
+                     if ( data['sources'].indexOf(name) == -1 )
+                     {
+                         delete known_sources[name];
+                         $("section[data-source='" + name + "']").remove();
+                     }
+                 }
+             } );
+      }
+
+      function refresh_source_info ( source )
+      {
+          $.ajax ( { url: '/data/source/' + source + '/info'} ).done (
+              function(data)
+              {
+                  $("section[data-source='" + source + "'] > header").text ( data['title'] );
+
+                  $("section[data-source='" + source + "'] > p").text ( data['samples'] + ' samples');
+              } );
+      }
+    </script>
   </head>
   <body>
     <header>
@@ -34,11 +130,22 @@
       -->
     </header>
 
+    <section id="error">
+      <header>ERROR</header>
+      <p id="error-content"></p>
+    </section>
+
+    <main>
     <section>
       <header>
       </header>
 
 
-    </section>
+    </main>
+
+    <footer>
+    Served by <a href="http://github.com/rasmus-toftdahl-olesen/gry">Gry</a>
+    </footer>
+    </div>
   </body>
 </html>
