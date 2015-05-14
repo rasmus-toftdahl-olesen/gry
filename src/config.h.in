@@ -1,0 +1,3 @@
+#cmakedefine GRY_INCLUDE_STATIC_WEB
+
+#define GRY_STATIC_WEB_DIR "${GRY_STATIC_WEB_DIR}"
