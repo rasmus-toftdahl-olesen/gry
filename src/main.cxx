@@ -1,3 +1,4 @@
+#include <gry/udp.h>
 #include <gry/web.h>
 #include <gry/repository.h>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -12,9 +13,12 @@ int main ()
         log4cpp::PropertyConfigurator::configure(initFileName.native());
     }
 
-    WebServer server;
-
+    pion::single_service_scheduler scheduler;
+    WebServer server ( scheduler, 8123 );
     server.start();
+
+    UdpServer udpServer ( scheduler, 8124 );
+    udpServer.start();
 
     while (1)
     {

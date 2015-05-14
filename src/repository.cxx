@@ -92,3 +92,17 @@ SourcePtr Repository::findSourceByPath ( path _directory )
     }
     return SourcePtr();
 }
+
+SourcePtr Repository::getOrCreateSourceByName ( std::string _name )
+{
+    boost::lock_guard<boost::recursive_mutex> guard ( m_lock );
+
+    SourcePtr source = findSourceByName(_name);
+    if ( !source )
+    {
+        m_logger << log4cpp::Priority::INFO << "Adding new source " << _name;
+        source = SourcePtr(new Source(m_dataDirectory / _name));
+        m_sources.push_back (  source );
+    }
+    return source;
+}

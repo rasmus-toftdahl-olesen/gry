@@ -38,5 +38,6 @@ namespace gry
 
         SourcePtr findSourceByName ( std::string _name );
         SourcePtr findSourceByPath ( boost::filesystem::path _directory );
+        SourcePtr getOrCreateSourceByName ( std::string _name );
     };
 }

@@ -4,22 +4,96 @@
 #include <boost/chrono/chrono_io.hpp>
 #include <pion/http/response_writer.hpp>
 
+#include "config.h"
+
 using namespace gry;
 using namespace pion::http;
 using namespace pion::tcp;
 using namespace boost;
 
-WebServer::WebServer()
-    : m_server(8123)
+WebServer::WebServer( pion::scheduler & _scheduler, ushort _portNumber )
+    : m_server(_scheduler, _portNumber)
 {
     m_server.add_resource("/data",
-                         boost::bind(&WebServer::requestHandler, this, _1, _2));
+                          boost::bind(&WebServer::requestHandler, this, _1, _2));
+    m_server.add_resource("/",
+                          boost::bind(&WebServer::requestHandlerStatic, this, _1, _2));
 }
 
 void WebServer::start()
 {
     m_server.start();
 }
+
+#ifdef GRY_INCLUDE_STATIC_WEB
+#include "generated_web.cxx"
+
+void WebServer::requestHandlerStatic(request_ptr & _request, connection_ptr & _conn)
+{
+    response_writer_ptr writer( response_writer::create(_conn, *_request,
+                                                        boost::bind(&connection::finish, _conn)));
+    if ( _request->get_resource() == "/" )
+    {
+        writer->write ( s_index_html );
+    }
+    else
+    {
+
+    }
+    writer->send();
+}
+#else
+#include <boost/filesystem/fstream.hpp>
+
+void readFile ( response_writer_ptr & _writer, const std::string & _filename )
+{
+    std::stringstream buffer;
+    boost::filesystem::ifstream fileStream ( _filename );
+    if ( fileStream.is_open() )
+    {
+        buffer << fileStream.rdbuf();
+        if ( fileStream.bad() )
+        {
+            _writer->write ( "Error reading file: " );
+            _writer->write ( _filename );
+        }
+        _writer->write ( buffer.str() );
+    }
+    else
+    {
+        _writer->write ( "Could not open file: " );
+        _writer->write ( _filename );
+    }
+}
+
+void WebServer::requestHandlerStatic(request_ptr & _request, connection_ptr & _conn)
+{
+    response_writer_ptr writer( response_writer::create(_conn, *_request,
+                                                        boost::bind(&connection::finish, _conn)));
+    writer->get_response().change_header ( response::HEADER_CONTENT_ENCODING, "ascii" );
+    if ( _request->get_resource() == "/" )
+    {
+        writer->get_response().set_content_type ( "text/html; charset=ascii" );
+        readFile ( writer, GRY_STATIC_WEB_DIR "index.html" );
+    }
+    else if ( _request->get_resource() == "/jquery.js" )
+    {
+        writer->get_response().set_content_type ( "text/javascript; charset=ascii" );
+        readFile ( writer, GRY_STATIC_WEB_DIR "jquery.js" );
+    }
+    else if ( _request->get_resource() == "/smoothie.js" )
+    {
+        writer->get_response().set_content_type ( "text/javascript; charset=ascii" );
+        readFile ( writer, GRY_STATIC_WEB_DIR "smoothie.js" );
+    }
+    else
+    {
+        writer->write ( "ERROR: Unknown resource " );
+        writer->write ( _request->get_resource() );
+    }
+    writer->send();
+}
+#endif
 
 void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
 {
@@ -39,11 +113,12 @@ void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
     response_writer_ptr writer( response_writer::create(_conn, *_request,
                                                         boost::bind(&connection::finish, _conn)));
 
-    response resp ( writer->get_response() );
-    resp.set_content_type ( "text/json" );
+    writer->get_response().set_content_type ( "application/json; charset=ascii" );
+    writer->get_response().change_header ( response::HEADER_CONTENT_ENCODING, "ascii" );
+
     if ( _request->get_resource() == "/data/sources" )
     {
-        writer->write ( "{ sources: [" );
+        writer->write ( "{ \"sources\": [" );
         bool first  = true;
         std::vector<std::string> sources = repo.sourceNames();
         for ( std::vector<std::string>::iterator it = sources.begin(); it != sources.end(); ++it )
@@ -56,9 +131,9 @@ void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
             {
                 writer->write ( "," );
             }
-            writer->write ( "'" );
+            writer->write ( '"' );
             writer->write ( *it );
-            writer->write ( "'" );
+            writer->write ( '"' );
         }
         writer->write ( "] }" );
     }
@@ -66,26 +141,26 @@ void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
     {
         if ( sourceCmd == "info" )
         {
-            writer->write ( "{ directory: '" );
+            writer->write ( "{ \"directory\": \"" );
             writer->write ( source->directory().native() );
-            writer->write ( "', samples: '" );
+            writer->write ( "\", \"samples\": " );
             writer->write ( source->numberOfSamples() );
-            writer->write ( "', from: '" );
+            writer->write ( ", \"from\": \"" );
             writer->write ( source->oldest().get<0>() );
-            writer->write ( "', to: '" );
+            writer->write ( "\", \"to\": \"" );
             writer->write ( source->newest().get<0>() );
-            writer->write ( "' }" );
+            writer->write ( "\" }" );
         }
         else if ( sourceCmd == "add" )
         {
             double value = boost::lexical_cast<double> ( _request->get_query_string() );
             Source::Timestamp timestamp = source->add ( value );
 
-            writer->write ( "{ timestamp: '" );
+            writer->write ( "{ \"timestamp\": \"" );
             writer->write ( timestamp );
-            writer->write ( "'," );
+            writer->write ( "\", value: " );
             writer->write ( value );
-            writer->write ( "' }" );
+            writer->write ( " }" );
         }
         else if ( sourceCmd == "data" )
         {
@@ -93,21 +168,21 @@ void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
         }
         else
         {
-            resp.set_status_code(types::RESPONSE_CODE_BAD_REQUEST);
-            resp.set_status_message(types::RESPONSE_MESSAGE_BAD_REQUEST);
-            writer->write ( "{ error: 'Unknown source command: " );
+            writer->get_response().set_status_code(types::RESPONSE_CODE_BAD_REQUEST);
+            writer->get_response().set_status_message(types::RESPONSE_MESSAGE_BAD_REQUEST);
+            writer->write ( "{ \"error\": \"Unknown source command: " );
             writer->write ( sourceCmd );
-            writer->write ( "' } " );
+            writer->write ( "\" } " );
         }
     }
     else
     {
-        resp.set_status_code(types::RESPONSE_CODE_BAD_REQUEST);
-        resp.set_status_message(types::RESPONSE_MESSAGE_BAD_REQUEST);
-        writer->write ( "{ error: 'Unknown data request', " );
-        writer->write ( "  request: '" );
+        writer->get_response().set_status_code(types::RESPONSE_CODE_BAD_REQUEST);
+        writer->get_response().set_status_message(types::RESPONSE_MESSAGE_BAD_REQUEST);
+        writer->write ( "{ \"error\": \"Unknown data request\", " );
+        writer->write ( "  \"request\": \"" );
         writer->write ( _request->get_resource() );
-        writer->write ( "'} " );
+        writer->write ( "\"} " );
     }
     writer->send();
 }
