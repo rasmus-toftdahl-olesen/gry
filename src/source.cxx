@@ -1,4 +1,5 @@
 #include <gry/source.h>
+#include <gry/utils.h>
 #include <boost/thread/lock_guard.hpp>
 #include <pion/tcp/stream.hpp>
 #include <boost/lexical_cast.hpp>
@@ -8,7 +9,7 @@ using namespace boost::filesystem;
 
 Source::Source(const path & _directory)
     : m_directory(_directory),
-      m_values(1000)
+      m_liveValues(1000)
 {
     assert ( !is_regular_file(_directory) );
 
@@ -25,7 +26,7 @@ void Source::refresh()
     path namePath = m_directory / "name.txt";
     if ( exists(namePath) )
     {
-
+        m_name = read_text_file ( namePath );
     }
     else
     {
@@ -33,24 +34,31 @@ void Source::refresh()
     }
 }
 
+void Source::setName ( const std::string & _name )
+{
+    m_name = _name;
+
+    write_text_file ( m_directory / "name.txt", _name );
+}
+
 int Source::numberOfSamples()
 {
     boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
 
-    return m_values.size();
+    return m_liveValues.size();
 }
 
 Source::Value Source::oldest()
 {
     boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
 
-    if ( m_values.empty() )
+    if ( m_liveValues.empty() )
     {
         return Source::Value(TimeSource::now(), NAN);
     }
     else
     {
-        return m_values.front();
+        return m_liveValues.front();
     }
 }
 
@@ -58,13 +66,13 @@ Source::Value Source::newest()
 {
     boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
 
-    if ( m_values.empty() )
+    if ( m_liveValues.empty() )
     {
         return Source::Value(TimeSource::now(), NAN);
     }
     else
     {
-        return m_values.back();
+        return m_liveValues.back();
     }
 }
 
@@ -81,15 +89,19 @@ Source::Timestamp Source::add ( double _value )
     boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
     Timestamp now = TimeSource::now();
 
-    m_values.push_back ( Value(now, _value) );
+    m_liveValues.push_back ( Value(now, _value) );
 
-    for ( std::vector<pion::tcp::connection_ptr>::iterator it = m_listeners.begin(); it != m_listeners.end(); ++it )
     {
-        std::string valueAsString ( boost::lexical_cast<std::string>(_value) );
-        pion::tcp::stream_buffer stream ( *it );
-        stream << "data: ";
-        stream << valueAsString;
-        stream << "\n\n";
+        boost::lock_guard<boost::recursive_mutex> guard ( m_listenersLock );
+
+        for ( std::vector<pion::tcp::connection_ptr>::iterator it = m_listeners.begin(); it != m_listeners.end(); ++it )
+        {
+            std::string valueAsString ( boost::lexical_cast<std::string>(_value) );
+            pion::tcp::stream_buffer stream ( *it );
+            stream << "data: ";
+            stream << valueAsString;
+            stream << "\n\n";
+        }
     }
     return now;
 }
@@ -100,8 +112,8 @@ void Source::writeValues ( pion::http::response_writer_ptr _writer )
 
     bool first = true;
     _writer->write ( "[\n" );
-    for ( boost::circular_buffer<Source::Value>::const_iterator it = m_values.begin();
-          it != m_values.end();
+    for ( boost::circular_buffer<Source::Value>::const_iterator it = m_liveValues.begin();
+          it != m_liveValues.end();
           ++it )
     {
         if ( first )
@@ -131,5 +143,9 @@ void Source::subscribe ( pion::tcp::connection_ptr & _conn )
     stream << "Connection: keep-alive\r\n";
     stream << "\r\n";
 
-    m_listeners.push_back ( _conn );
+    {
+        boost::lock_guard<boost::recursive_mutex> guard ( m_listenersLock );
+
+        m_listeners.push_back ( _conn );
+    }
 }
