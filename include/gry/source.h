@@ -8,6 +8,7 @@
 #include <ostream>
 #include <pion/http/response_writer.hpp>
 #include <pion/tcp/connection.hpp>
+#include <gry/valuebuffer.h>
 
 namespace gry
 {
@@ -16,24 +17,26 @@ namespace gry
     public:
         typedef boost::chrono::system_clock TimeSource;
         typedef TimeSource::time_point Timestamp;
+        typedef TimeSource::duration Duration;
         typedef boost::tuple<Timestamp,double> Value;
 
-        static const size_t LIVE_VALUES = 1000;
-        static const size_t BY_SECOND_VALUES = 60 * 60;
-        static const size_t BY_MINUTE_VALUES = 60 * 60;
-        static const size_t BY_HOUR_VALUES = 24 * 60;
-        static const size_t BY_DAY_VALUES = 7 * 24 * 60;
-        static const size_t BY_SECOND_VALUES_SIZE = BY_SECOND_VALUES * sizeof(float);
-        static const size_t BY_MINUTE_VALUES_SIZE = BY_MINUTE_VALUES * sizeof(float);
-        static const size_t BY_HOUR_VALUES_SIZE = BY_HOUR_VALUES * sizeof(float);
-        static const size_t BY_DAY_VALUES_SIZE = BY_DAY_VALUES * sizeof(float);
-        static const size_t TOTAL_DISK_SIZE = BY_SECOND_VALUES_SIZE + BY_MINUTE_VALUES_SIZE + BY_HOUR_VALUES_SIZE + BY_DAY_VALUES_SIZE;
+        const size_t LIVE_VALUES;
+        static const size_t DEFAULT_BY_SECOND_VALUES = 60 * 60; // One hour of by-second values;
+        static const size_t DEFAULT_BY_MINUTE_VALUES = 24 * 60; // 24 hours of by-minute values
+        static const size_t DEFAULT_BY_HOUR_VALUES = 24 * 60; // Two months of hourly values
+        static const size_t DEFAULT_BY_DAY_VALUES = 365 * 2; // Two years of daily values
 
-    private:
+    protected:
         boost::filesystem::path m_directory;
         std::string m_name;
         boost::recursive_mutex m_valuesLock;
         boost::circular_buffer<Value> m_liveValues;
+
+        ValueBuffer m_bySecond;
+        ValueBuffer m_byMinute;
+        ValueBuffer m_byHour;
+        ValueBuffer m_byDay;
+
         boost::recursive_mutex m_listenersLock;
         std::vector<pion::tcp::connection_ptr> m_listeners;
 
@@ -51,6 +54,11 @@ namespace gry
         {
             return m_directory;
         }
+
+        int numberOfBySecondValues();
+        int numberOfByMinuteValues();
+        int numberOfByHourValues();
+        int numberOfByDayValues();
 
         int numberOfSamples();
         Value oldest();

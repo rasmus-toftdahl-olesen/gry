@@ -6,12 +6,22 @@
 
 using namespace gry;
 using namespace boost::filesystem;
+using namespace boost::chrono;
 
 Source::Source(const path & _directory)
-    : m_directory(_directory),
-      m_liveValues(1000)
+    : LIVE_VALUES(1000),
+      m_directory(_directory),
+      m_liveValues(LIVE_VALUES),
+      m_bySecond(DEFAULT_BY_SECOND_VALUES, boost::chrono::seconds(1)),
+      m_byMinute(DEFAULT_BY_MINUTE_VALUES, boost::chrono::minutes(1)),
+      m_byHour(DEFAULT_BY_HOUR_VALUES, boost::chrono::hours(1)),
+      m_byDay(DEFAULT_BY_DAY_VALUES, boost::chrono::hours(24))
 {
     assert ( !is_regular_file(_directory) );
+
+    m_bySecond.setNext ( &m_byMinute );
+    m_byMinute.setNext ( &m_byHour );
+    m_byHour.setNext ( &m_byDay );
 
     refresh();
 }
@@ -39,6 +49,34 @@ void Source::setName ( const std::string & _name )
     m_name = _name;
 
     write_text_file ( m_directory / "name.txt", _name );
+}
+
+int Source::numberOfBySecondValues()
+{
+    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
+
+    return m_bySecond.size();
+}
+
+int Source::numberOfByMinuteValues()
+{
+    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
+
+    return m_byMinute.size();
+}
+
+int Source::numberOfByHourValues()
+{
+    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
+
+    return m_byHour.size();
+}
+
+int Source::numberOfByDayValues()
+{
+    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
+
+    return m_byDay.size();
 }
 
 int Source::numberOfSamples()
@@ -86,21 +124,36 @@ void operator<< ( pion::tcp::stream_buffer & _stream, const std::string & _value
 
 Source::Timestamp Source::add ( double _value )
 {
-    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
-    Timestamp now = TimeSource::now();
+    static boost::chrono::seconds one_second (1);
+    static boost::chrono::minutes one_minute (1);
 
-    m_liveValues.push_back ( Value(now, _value) );
+    Timestamp now = TimeSource::now();
+    {
+        boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
+
+        m_liveValues.push_back ( Value(now, _value) );
+        m_bySecond.add ( now, _value );
+    }
 
     {
         boost::lock_guard<boost::recursive_mutex> guard ( m_listenersLock );
 
-        for ( std::vector<pion::tcp::connection_ptr>::iterator it = m_listeners.begin(); it != m_listeners.end(); ++it )
+        for ( std::vector<pion::tcp::connection_ptr>::iterator it = m_listeners.begin(); it != m_listeners.end(); )
         {
             std::string valueAsString ( boost::lexical_cast<std::string>(_value) );
             pion::tcp::stream_buffer stream ( *it );
             stream << "data: ";
             stream << valueAsString;
             stream << "\n\n";
+
+            if ( (*it)->is_open() )
+            {
+                ++it;
+            }
+            else
+            {
+                it = m_listeners.erase(it);
+            }
         }
     }
     return now;
