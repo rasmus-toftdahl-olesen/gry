@@ -64,9 +64,13 @@ namespace gry
         Value oldest();
         Value newest();
         Timestamp add ( double _value );
-        void refresh();
+        void refresh( bool _intial );
 
         void writeValues ( pion::http::response_writer_ptr _writer );
         void subscribe ( pion::tcp::connection_ptr & _conn );
+
+    protected:
+        void saveValues ( const std::string & _filename, const ValueBuffer & _values ) const;
+        void loadValues ( const std::string & _filename, ValueBuffer & _values ) const;
     };
 }

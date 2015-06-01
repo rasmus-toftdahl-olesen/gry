@@ -9,7 +9,12 @@ ValueBuffer::ValueBuffer ( size_t _numberOfValues, Duration _valueDuration )
       m_values(_numberOfValues),
       m_next(0)
 {
-    for ( size_t i = 0; i < _numberOfValues; i++ )
+    reset();
+}
+
+void ValueBuffer::reset()
+{
+    for ( SizeType i = 0; i < m_values.capacity(); i++ )
     {
         m_values.push_back(0);
     }
@@ -17,8 +22,6 @@ ValueBuffer::ValueBuffer ( size_t _numberOfValues, Duration _valueDuration )
 
 void ValueBuffer::setNext ( ValueBuffer * _nextBuffer )
 {
-    //size_t neededSamples = _nextBuffer->m_valueDuration / m_valueDuration;
-
     m_next = _nextBuffer;
 }
 
@@ -85,13 +88,31 @@ void ValueBuffer::add ( Timestamp _timestamp, double _value )
     }
 }
 
-void ValueBuffer::dump ( std::ostream & _stream )
+void ValueBuffer::dump ( std::ostream & _stream ) const
 {
     _stream << "[";
-    for ( Iterator it = begin(); it != end(); ++it )
+    for ( ConstIterator it = begin(); it != end(); ++it )
     {
         _stream << *it << ", ";
     }
     _stream << "]";
     _stream << std::endl;
+}
+
+void ValueBuffer::save ( std::ostream & _stream ) const
+{
+    for ( ConstIterator it = begin(); it != end(); ++it )
+    {
+        _stream.write ( reinterpret_cast<const char*>(&*it), sizeof(double) );
+    }
+}
+
+void ValueBuffer::load ( std::istream & _stream )
+{
+    reset();
+
+    for ( Iterator it = begin(); it != end(); ++it )
+    {
+        _stream.read ( reinterpret_cast<char*>( &*it ), sizeof(double) );
+    }
 }

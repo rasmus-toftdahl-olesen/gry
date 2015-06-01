@@ -42,7 +42,7 @@ void Repository::discover()
     {
         if ( exists(it->get()->directory()) )
         {
-            it->get()->refresh();
+            it->get()->refresh( false );
             it++;
         }
         else

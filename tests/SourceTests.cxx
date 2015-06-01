@@ -37,7 +37,7 @@ BOOST_FIXTURE_TEST_CASE ( TestSourceSettingNameChangesNameFile, F )
 BOOST_FIXTURE_TEST_CASE ( TestSourceNameIsStillSetAfterRefresh, F )
 {
     this->setName ( "My Source" );
-    this->refresh();
+    this->refresh( false );
     BOOST_CHECK_EQUAL(this->name(), "My Source" );
 }
 

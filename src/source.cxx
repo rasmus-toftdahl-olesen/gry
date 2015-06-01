@@ -3,6 +3,7 @@
 #include <boost/thread/lock_guard.hpp>
 #include <pion/tcp/stream.hpp>
 #include <boost/lexical_cast.hpp>
+#include <fstream>
 
 using namespace gry;
 using namespace boost::filesystem;
@@ -23,10 +24,10 @@ Source::Source(const path & _directory)
     m_byMinute.setNext ( &m_byHour );
     m_byHour.setNext ( &m_byDay );
 
-    refresh();
+    refresh( true );
 }
 
-void Source::refresh()
+void Source::refresh( bool _initial )
 {
     if ( !exists(m_directory) )
     {
@@ -42,6 +43,42 @@ void Source::refresh()
     {
         m_name = m_directory.filename().native();
     }
+
+    {
+        boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
+
+        if ( _initial )
+        {
+            loadValues ( "by_second.mem", m_bySecond );
+            loadValues ( "by_minute.mem", m_byMinute );
+            loadValues ( "by_hour.mem", m_byHour );
+            loadValues ( "by_day.mem", m_byDay );
+        }
+        else
+        {
+            saveValues ( "by_second.mem", m_bySecond );
+            saveValues ( "by_minute.mem", m_byMinute );
+            saveValues ( "by_hour.mem", m_byHour );
+            saveValues ( "by_day.mem", m_byDay );
+        }
+    }
+}
+
+void Source::loadValues ( const std::string & _filename, ValueBuffer & _values ) const
+{
+    path fullPath = m_directory / _filename;
+    if ( exists(fullPath) )
+    {
+        std::ifstream fp ( fullPath.native().c_str(), std::ifstream::binary );
+        _values.load ( fp );
+    }
+}
+
+void Source::saveValues ( const std::string & _filename, const ValueBuffer & _values ) const
+{
+    path fullPath = m_directory / _filename;
+    std::ofstream fp ( fullPath.native().c_str(), std::ofstream::binary );
+    _values.save ( fp );
 }
 
 void Source::setName ( const std::string & _name )

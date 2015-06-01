@@ -19,9 +19,14 @@ namespace gry
         ValueBuffer ( size_t _numberOfValues, Duration _valueDuration );
         void add ( Timestamp _timestamp, double _value );
         void setNext ( ValueBuffer * _nextBuffer );
-        void dump ( std::ostream & _stream );
+        void dump ( std::ostream & _stream ) const;
+        void save ( std::ostream & _stream ) const;
+        void load ( std::istream & _stream );
+        void reset();
         inline Iterator begin() { return m_values.begin(); }
         inline Iterator end() { return m_values.end(); }
+        inline ConstIterator begin() const { return m_values.begin(); }
+        inline ConstIterator end() const { return m_values.end(); }
         inline SizeType size() const { return m_values.size(); }
         inline double operator[] ( SizeType _index ) const { return m_values[_index]; }
         inline ConstReference front() const { return m_values.front(); }
