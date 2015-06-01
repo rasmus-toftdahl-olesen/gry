@@ -23,6 +23,8 @@ include_directories(${PION_INCLUDE_DIRS})
 link_directories(${PION_LIBRARY_DIRS})
 target_link_libraries(gry_server ${PION_LIBRARIES})
 
+set(GRY_WEB_PORT 8123 CACHE STRING "Port to listen for HTTP traffic on.")
+set(GRY_UDP_PORT 8124 CACHE STRING "Port to listen for UDP traffic on.")
 option(GRY_INCLUDE_STATIC_WEB "Include the static web files in the gry_server executable." ON)
 set(GRY_STATIC_WEB_DIR "${CMAKE_SOURCE_DIR}/web/")
 configure_file(src/config.h.in ${CMAKE_BINARY_DIR}/config.h)

@@ -2,6 +2,7 @@
 #include <gry/web.h>
 #include <gry/repository.h>
 #include <log4cpp/PropertyConfigurator.hh>
+#include "config.h"
 
 using namespace gry;
 
@@ -14,10 +15,10 @@ int main ()
     }
 
     pion::single_service_scheduler scheduler;
-    WebServer server ( scheduler, 8123 );
+    WebServer server ( scheduler, GRY_WEB_PORT );
     server.start();
 
-    UdpServer udpServer ( scheduler, 8124 );
+    UdpServer udpServer ( scheduler, GRY_UDP_PORT );
     udpServer.start();
 
     while (1)
