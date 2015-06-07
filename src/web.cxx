@@ -84,10 +84,10 @@ void WebServer::requestHandlerStatic(request_ptr & _request, connection_ptr & _c
         writer->get_response().set_content_type ( "text/javascript; charset=ascii" );
         readFile ( writer, GRY_STATIC_WEB_DIR "jquery.js" );
     }
-    else if ( _request->get_resource() == "/smoothie.js" )
+    else if ( _request->get_resource() == "/jquery.flot.min.js" )
     {
         writer->get_response().set_content_type ( "text/javascript; charset=ascii" );
-        readFile ( writer, GRY_STATIC_WEB_DIR "smoothie.js" );
+        readFile ( writer, GRY_STATIC_WEB_DIR "jquery.flot.min.js" );
     }
     else
     {
