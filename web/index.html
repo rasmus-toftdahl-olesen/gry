@@ -24,6 +24,20 @@
           margin: 1em;
           padding: 0.5em;
       }
+      section nav {
+          padding: 0.5em;
+          border: 2px solid #00bfff;
+      }
+      section nav a {
+          color: #00bfff;
+          font-weight: bold;
+          text-decoration: none;
+          padding: 0.5em;
+      }
+      section nav a.active {
+          color: white;
+          background-color: #00bfff;
+      }
       #error {
           background-color: red;
           color: white;
@@ -83,7 +97,8 @@
                      var name = data['sources'][i];
                      if ( !(name in known_sources) )
                      {
-                         $('main').append ( '<section data-source="' + name + '"><header>' + name + '</header><canvas width="900"></canvas></section>' );
+                         $('main').append ( '<section data-source="' + name + '"><header>' + name + '</header><nav><a href="#">seconds</a><a href="#">minutes</a><a href="#">hours</a><a href="#">days</a><a href="#">info</a></nav><div class="content"></div></section>' );
+                         /*
                          var smoothie = new SmoothieChart({millisPerPixel:100});
                          var series = new TimeSeries();
                          smoothie.addTimeSeries(series, { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.4)', lineWidth:3 });
@@ -99,11 +114,14 @@
                          }
 
                          smoothie.streamTo ( $("section[data-source='" + name + "'] > canvas").get(0) );
+                         */
 
-                         known_sources[name] = { 'smoothie': smoothie, 'series': series,
-                                                 'live': eventSource };
+                         known_sources[name] = { 'name' : name,
+                                                 'smoothie': null,
+                                                 'series': null,
+                                                 'live': null };
 
-                         refresh_source_info ( name );
+                         $("section[data-source='" + name + "'] > nav a").click( create_select_tab_handler(name) );
                      }
                  }
                  for ( var name in known_sources )
@@ -118,14 +136,38 @@
              } );
       }
 
+      function create_select_tab_handler ( name )
+      {
+          return function ( e )
+          {
+              $("section[data-source='" + name + "'] > nav a").removeClass('active');
+              select_tab ( name, e.target.innerHTML );
+              $(e.target).addClass ( 'active' );
+          }
+      }
+
+      function select_tab ( source_name, tab_name )
+      {
+          if ( tab_name == 'info' )
+          {
+              refresh_source_info ( source_name );
+          }
+          else
+          {
+              if ( tab_name == 'seconds' )
+              {
+              }
+          }
+      }
+
       function refresh_source_info ( source )
       {
           $.ajax ( { url: '/data/source/' + source + '/info'} ).done (
               function(data)
               {
-                  $("section[data-source='" + source + "'] > header").text ( data['title'] );
+                  //$("section[data-source='" + source + "'] > header").text ( data['title'] );
 
-                  $("section[data-source='" + source + "'] > p").text ( data['samples'] + ' samples');
+                  $("section[data-source='" + source + "'] > div[class = 'content']").text ( data['samples'] + ' samples');
               } );
       }
     </script>
@@ -148,11 +190,15 @@
     </section>
 
     <main>
-    <section>
-      <header>
-      </header>
-
-
+    <!--
+      <section data-source="TEST">
+        <header>TEST</header>
+        <nav><a href="#">seconds</a><a href="#">minutes</a><a href="#">hours</a><a href="#">days</a><a href="#">info</a></nav>
+        <div class="content">
+          <canvas width="900"></canvas>
+        </div>
+    </section>
+    -->
     </main>
 
     <footer>
