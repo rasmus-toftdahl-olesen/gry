@@ -39,6 +39,16 @@ void WebServer::requestHandlerStatic(request_ptr & _request, connection_ptr & _c
     {
         writer->write ( s_index_html );
     }
+    else if ( _request->get_resource() == "/jquery.js" )
+    {
+        writer->get_response().set_content_type ( "text/javascript; charset=ascii" );
+        writer->write ( s_jquery_js );
+    }
+    else if ( _request->get_resource() == "/jquery.flot.min.js" )
+    {
+        writer->get_response().set_content_type ( "text/javascript; charset=ascii" );
+        writer->write ( s_jquery_flot_min_js );
+    }
     else
     {
 
