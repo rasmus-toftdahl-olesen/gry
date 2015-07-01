@@ -1,6 +1,6 @@
 #include <gry/source.h>
 #include <gry/utils.h>
-#include <boost/thread/lock_guard.hpp>
+#include <boost/thread/locks.hpp>
 #include <pion/tcp/stream.hpp>
 #include <boost/lexical_cast.hpp>
 #include <fstream>
