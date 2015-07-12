@@ -146,13 +146,15 @@ void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
         {
             writer->write ( "{ \"directory\": \"" );
             writer->write ( source->directory().native() );
-            writer->write ( "\", \"samples\": " );
-            writer->write ( source->numberOfSamples() );
-            writer->write ( ", \"from\": \"" );
-            writer->write ( source->oldest().get<0>() );
-            writer->write ( "\", \"to\": \"" );
-            writer->write ( source->newest().get<0>() );
-            writer->write ( "\" }" );
+            writer->write ( "\", \"by_second_values\": " );
+            writer->write ( source->numberOfBySecondValues() );
+            writer->write ( ", \"by_minute_values\": " );
+            writer->write ( source->numberOfByMinuteValues() );
+            writer->write ( ", \"by_hour_values\": " );
+            writer->write ( source->numberOfByHourValues() );
+            writer->write ( ", \"by_day_values\": " );
+            writer->write ( source->numberOfByDayValues() );
+            writer->write ( " }" );
         }
         else if ( sourceCmd == "add" )
         {
@@ -165,9 +167,21 @@ void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
             writer->write ( value );
             writer->write ( " }" );
         }
-        else if ( sourceCmd == "data" )
+        else if ( sourceCmd == "seconds/data" )
         {
-            source->writeValues ( writer );
+            source->writeBySecondValues ( writer );
+        }
+        else if ( sourceCmd == "minutes/data" )
+        {
+            source->writeByMinuteValues ( writer );
+        }
+        else if ( sourceCmd == "hours/data" )
+        {
+            source->writeByHourValues ( writer );
+        }
+        else if ( sourceCmd == "days/data" )
+        {
+            source->writeByDayValues ( writer );
         }
         else
         {

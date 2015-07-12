@@ -20,7 +20,6 @@ namespace gry
         typedef TimeSource::duration Duration;
         typedef boost::tuple<Timestamp,double> Value;
 
-        const size_t LIVE_VALUES;
         static const size_t DEFAULT_BY_SECOND_VALUES = 60 * 60; // One hour of by-second values;
         static const size_t DEFAULT_BY_MINUTE_VALUES = 24 * 60; // 24 hours of by-minute values
         static const size_t DEFAULT_BY_HOUR_VALUES = 24 * 60; // Two months of hourly values
@@ -30,7 +29,6 @@ namespace gry
         boost::filesystem::path m_directory;
         std::string m_name;
         boost::recursive_mutex m_valuesLock;
-        boost::circular_buffer<Value> m_liveValues;
 
         ValueBuffer m_bySecond;
         ValueBuffer m_byMinute;
@@ -60,13 +58,14 @@ namespace gry
         int numberOfByHourValues();
         int numberOfByDayValues();
 
-        int numberOfSamples();
-        Value oldest();
-        Value newest();
         Timestamp add ( double _value );
         void refresh( bool _intial );
 
-        void writeValues ( pion::http::response_writer_ptr _writer );
+        void writeBySecondValues ( pion::http::response_writer_ptr _writer );
+        void writeByMinuteValues ( pion::http::response_writer_ptr _writer );
+        void writeByHourValues ( pion::http::response_writer_ptr _writer );
+        void writeByDayValues ( pion::http::response_writer_ptr _writer );
+
         void subscribe ( pion::tcp::connection_ptr & _conn );
 
     protected:

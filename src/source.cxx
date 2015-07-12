@@ -10,9 +10,7 @@ using namespace boost::filesystem;
 using namespace boost::chrono;
 
 Source::Source(const path & _directory)
-    : LIVE_VALUES(1000),
-      m_directory(_directory),
-      m_liveValues(LIVE_VALUES),
+    : m_directory(_directory),
       m_bySecond(DEFAULT_BY_SECOND_VALUES, boost::chrono::seconds(1)),
       m_byMinute(DEFAULT_BY_MINUTE_VALUES, boost::chrono::minutes(1)),
       m_byHour(DEFAULT_BY_HOUR_VALUES, boost::chrono::hours(1)),
@@ -116,41 +114,6 @@ int Source::numberOfByDayValues()
     return m_byDay.size();
 }
 
-int Source::numberOfSamples()
-{
-    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
-
-    return m_liveValues.size();
-}
-
-Source::Value Source::oldest()
-{
-    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
-
-    if ( m_liveValues.empty() )
-    {
-        return Source::Value(TimeSource::now(), NAN);
-    }
-    else
-    {
-        return m_liveValues.front();
-    }
-}
-
-Source::Value Source::newest()
-{
-    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
-
-    if ( m_liveValues.empty() )
-    {
-        return Source::Value(TimeSource::now(), NAN);
-    }
-    else
-    {
-        return m_liveValues.back();
-    }
-}
-
 void operator<< ( pion::tcp::stream_buffer & _stream, const std::string & _value )
 {
     for ( std::string::size_type i = 0; i < _value.length(); ++i )
@@ -168,7 +131,6 @@ Source::Timestamp Source::add ( double _value )
     {
         boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
 
-        m_liveValues.push_back ( Value(now, _value) );
         m_bySecond.add ( now, _value );
     }
 
@@ -196,15 +158,11 @@ Source::Timestamp Source::add ( double _value )
     return now;
 }
 
-void Source::writeValues ( pion::http::response_writer_ptr _writer )
+void writeValues ( pion::http::response_writer_ptr _writer, const ValueBuffer & _buffer )
 {
-    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
-
     bool first = true;
-    _writer->write ( "[\n" );
-    for ( boost::circular_buffer<Source::Value>::const_iterator it = m_liveValues.begin();
-          it != m_liveValues.end();
-          ++it )
+    _writer->write ( "[" );
+    for ( ValueBuffer::ConstIterator it = _buffer.begin(); it != _buffer.end(); ++it )
     {
         if ( first )
         {
@@ -212,15 +170,39 @@ void Source::writeValues ( pion::http::response_writer_ptr _writer )
         }
         else
         {
-            _writer->write ( ", " );
+            _writer->write ( "," );
         }
-        _writer->write ( " { timestamp: '" );
-        _writer->write ( it->get<0>() );
-        _writer->write ( "', value: " );
-        _writer->write ( it->get<1>() );
-        _writer->write ( " }\n" );
+        _writer->write ( *it );
     }
     _writer->write ( "]\n" );
+}
+
+void Source::writeBySecondValues ( pion::http::response_writer_ptr _writer )
+{
+    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
+
+    writeValues ( _writer, m_bySecond );
+}
+
+void Source::writeByMinuteValues ( pion::http::response_writer_ptr _writer )
+{
+    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
+
+    writeValues ( _writer, m_byMinute );
+}
+
+void Source::writeByHourValues ( pion::http::response_writer_ptr _writer )
+{
+    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
+
+    writeValues ( _writer, m_byHour );
+}
+
+void Source::writeByDayValues ( pion::http::response_writer_ptr _writer )
+{
+    boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
+
+    writeValues ( _writer, m_byDay );
 }
 
 
