@@ -88,7 +88,7 @@
 
       function refresh_sources ()
       {
-          console.log ( 'Refresh sources');
+          //console.log ( 'Refresh sources');
           $.ajax ( { url: '/data/sources'} ).done (
              function(data)
               {
@@ -98,28 +98,10 @@
                      if ( !(name in known_sources) )
                      {
                          $('main').append ( '<section data-source="' + name + '"><header>' + name + '</header><nav><a class="active" href="#">seconds</a><a href="#">minutes</a><a href="#">hours</a><a href="#">days</a><a href="#">info</a></nav><div class="content"></div></section>' );
-                         /*
-                         var smoothie = new SmoothieChart({millisPerPixel:100});
-                         var series = new TimeSeries();
-                         smoothie.addTimeSeries(series, { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.4)', lineWidth:3 });
-                         var eventSource = new EventSource('/live/' + name)
-                         eventSource.series = series;
-                         eventSource.onmessage = function(e)
-                         {
-                             this.series.append( new Date(), e.data );
-                         }
-                         eventSource.onerror = function(e)
-                         {
-                             show_error ( 'ERROR on ' + name + ' data sources\' live events.' );
-                         }
-
-                         smoothie.streamTo ( $("section[data-source='" + name + "'] > canvas").get(0) );
-                         */
-
                          known_sources[name] = { 'name' : name,
-                                                 'chart': null,
-                                                 'series': null,
-                                                 'live': null };
+                                                 'plot': null,
+                                                 'eventSource': null,
+                                                 'data': null };
 
                          $("section[data-source='" + name + "'] > nav a").click( create_select_tab_handler(name) );
                          select_tab(name, 'seconds');
@@ -129,7 +111,10 @@
                  {
                      if ( data['sources'].indexOf(name) == -1 )
                      {
-                         known_sources[name]['live'].close();
+                         if ( known_sources[name]['eventSource'] != null )
+                         {
+                             known_sources[name]['eventSource'].close();
+                         }
                          delete known_sources[name];
                          $("section[data-source='" + name + "']").remove();
                      }
@@ -144,6 +129,7 @@
               $("section[data-source='" + name + "'] > nav a").removeClass('active');
               select_tab ( name, e.target.innerHTML );
               $(e.target).addClass ( 'active' );
+              return false;
           }
       }
 
@@ -164,7 +150,28 @@
                       {
                           flot_data.push ( [index, data[index]] );
                       }
-                      $.plot ("section[data-source='" + source_name + "'] > div[class = 'content'] > div", [flot_data] );
+                      known_sources[source_name]['data'] = flot_data;
+                      known_sources[source_name]['plot'] = $.plot ("section[data-source='" + source_name + "'] > div[class = 'content'] > div", [flot_data], {series: { shadowSize: 0 }, xaxis: { show: false}} );
+
+                      if ( known_sources[source_name]['eventSource'] != null )
+                      {
+                          known_sources[source_name]['eventSource'].close();
+                      }
+                      /*
+                      var eventSource = new EventSource('/live/' + source_name + '/' + tab_name)
+                      eventSource.known_source = known_sources[source_name];
+                      eventSource.onmessage = function(e)
+                      {
+                          this.known_source['data'].push ( [known_source['data'].length, e.data] );
+                          this.known_source['plot'].setData ( [this.known_source['data']] );
+                          this.known_source['plot'].draw();
+                      }
+                      eventSource.onerror = function(e)
+                      {
+                          show_error ( 'ERROR on ' + this.known_source['name'] + ' data sources\' live events.' );
+                      }
+                      known_sources[source_name]['eventSource'] = eventSource;
+                      */
                   } );
           }
       }

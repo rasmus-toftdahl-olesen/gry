@@ -115,8 +115,8 @@ void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
     std::string sourceCmd;
     if ( starts_with(_request->get_resource(), "/data/source/") )
     {
-        int endOfSourceName = _request->get_resource().find('/', 13);
-        if ( endOfSourceName != -1 )
+        size_t endOfSourceName = _request->get_resource().find('/', 13);
+        if ( endOfSourceName != std::string::npos )
         {
             std::string sourceName = _request->get_resource().substr(13, endOfSourceName - 13);
             source = repo.findSourceByName(sourceName);
@@ -218,17 +218,30 @@ void WebServer::requestHandlerLive(request_ptr & _request, connection_ptr & _con
 {
     Repository & repo = Repository::instance();
     SourcePtr source;
-    std::string sourceName = _request->get_resource().substr(6);
-    source = repo.findSourceByName(sourceName);
-    if ( source )
+    std::string sourceAndValues = _request->get_resource().substr(6);
+    size_t i = sourceAndValues.find('/');
+    if ( i != std::string::npos )
     {
+        std::string sourceName = sourceAndValues.substr(0, i);
+        std::string valuesName = sourceAndValues.substr(i + 1);
+        source = repo.findSourceByName(sourceName);
+        if ( source )
+        {
 
-        m_logger << log4cpp::Priority::INFO << "Subscription to " << sourceName << " from " << _conn->get_remote_ip();
+            m_logger << log4cpp::Priority::INFO << "Subscription to " << sourceName << " " << valuesName << " from " << _conn->get_remote_ip();
 
-        source->subscribe ( _conn );
-    }
-    else
-    {
-        m_logger << log4cpp::Priority::WARN << "Subscription to non-existing source " << sourceName << " from " << _conn->get_remote_ip();
+            if ( valuesName == "seconds" )
+            {
+                source->subscribeSeconds ( _conn );
+            }
+            else
+            {
+                m_logger << log4cpp::Priority::WARN << "Subscription to non-existing values " << valuesName << " from " << _conn->get_remote_ip();
+            }
+        }
+        else
+        {
+            m_logger << log4cpp::Priority::WARN << "Subscription to non-existing source " << sourceName << " from " << _conn->get_remote_ip();
+        }
     }
 }

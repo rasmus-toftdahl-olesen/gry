@@ -137,7 +137,7 @@ Source::Timestamp Source::add ( double _value )
     {
         boost::lock_guard<boost::recursive_mutex> guard ( m_listenersLock );
 
-        for ( std::vector<pion::tcp::connection_ptr>::iterator it = m_listeners.begin(); it != m_listeners.end(); )
+        for ( std::vector<pion::tcp::connection_ptr>::iterator it = m_secondsListeners.begin(); it != m_secondsListeners.end(); )
         {
             std::string valueAsString ( boost::lexical_cast<std::string>(_value) );
             pion::tcp::stream_buffer stream ( *it );
@@ -151,7 +151,7 @@ Source::Timestamp Source::add ( double _value )
             }
             else
             {
-                it = m_listeners.erase(it);
+                it = m_secondsListeners.erase(it);
             }
         }
     }
@@ -206,7 +206,7 @@ void Source::writeByDayValues ( pion::http::response_writer_ptr _writer )
 }
 
 
-void Source::subscribe ( pion::tcp::connection_ptr & _conn )
+void Source::subscribeSeconds ( pion::tcp::connection_ptr & _conn )
 {
     _conn->set_lifecycle(pion::tcp::connection::LIFECYCLE_KEEPALIVE);
     pion::tcp::stream_buffer stream ( _conn );
@@ -218,6 +218,6 @@ void Source::subscribe ( pion::tcp::connection_ptr & _conn )
     {
         boost::lock_guard<boost::recursive_mutex> guard ( m_listenersLock );
 
-        m_listeners.push_back ( _conn );
+        m_secondsListeners.push_back ( _conn );
     }
 }

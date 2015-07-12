@@ -36,7 +36,7 @@ namespace gry
         ValueBuffer m_byDay;
 
         boost::recursive_mutex m_listenersLock;
-        std::vector<pion::tcp::connection_ptr> m_listeners;
+        std::vector<pion::tcp::connection_ptr> m_secondsListeners;
 
     public:
         Source ( const boost::filesystem::path & _directory );
@@ -66,7 +66,7 @@ namespace gry
         void writeByHourValues ( pion::http::response_writer_ptr _writer );
         void writeByDayValues ( pion::http::response_writer_ptr _writer );
 
-        void subscribe ( pion::tcp::connection_ptr & _conn );
+        void subscribeSeconds ( pion::tcp::connection_ptr & _conn );
 
     protected:
         void saveValues ( const std::string & _filename, const ValueBuffer & _values ) const;
