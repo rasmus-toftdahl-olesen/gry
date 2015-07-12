@@ -1,5 +1,5 @@
 #include <gry/repository.h>
-#include <boost/thread/lock_guard.hpp>
+#include <boost/thread/locks.hpp>
 
 using namespace gry;
 using namespace boost::filesystem;

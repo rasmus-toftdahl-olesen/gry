@@ -32,14 +32,16 @@ configure_file(src/config.h.in ${CMAKE_BINARY_DIR}/config.h)
 file(WRITE ${CMAKE_BINARY_DIR}/generated_web.cxx "")
 function(gry_generate_web FILENAME)
   file(READ web/${FILENAME} CONTENT)
+  string(REPLACE "\\" "\\\\" CONTENT "${CONTENT}")
   string(REPLACE "\"" "\\\"" CONTENT "${CONTENT}")
   string(REPLACE "\n" "\\n" CONTENT "${CONTENT}")
   string(REPLACE "." "_" IDENTIFIER "${FILENAME}")
-  file(APPEND ${CMAKE_BINARY_DIR}/generated_web.cxx "static const char * s_${IDENTIFIER} = \"${CONTENT}\";")
+  file(APPEND ${CMAKE_BINARY_DIR}/generated_web.cxx "static const char * s_${IDENTIFIER} = \"${CONTENT}\";\n\n")
 endfunction()
 
 gry_generate_web(index.html)
 gry_generate_web(jquery.js)
+gry_generate_web(jquery.flot.min.js)
 
 include_directories(${CMAKE_BINARY_DIR})
 
