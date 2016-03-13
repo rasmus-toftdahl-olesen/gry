@@ -24,6 +24,9 @@
           margin: 1em;
           padding: 0.5em;
       }
+      .section-internal {
+          display: none;
+      }
       section nav {
           padding: 0.5em;
           border: 2px solid #00bfff;
@@ -52,6 +55,7 @@
       }
       main section header {
           font-size: 200%;
+          cursor: pointer;
       }
       main section {
           width: 90%;
@@ -109,13 +113,15 @@
                      var name = data['sources'][i];
                      if ( !(name in known_sources) )
                      {
-                         $('main').append ( '<section data-source="' + name + '"><header>' + name + '</header><nav><a class="active" href="#">seconds</a><a href="#">minutes</a><a href="#">hours</a><a href="#">days</a><a href="#">info</a></nav><div class="content"></div></section>' );
+                         $('main').append ( '<section data-source="' + name + '"><header>' + name + '</header><div class="section-internal"><nav><a class="active" href="#">seconds</a><a href="#">minutes</a><a href="#">hours</a><a href="#">days</a><a href="#">info</a></nav><div class="content"></div></div></section>' );
+
                          known_sources[name] = { 'name' : name,
                                                  'plot': null,
                                                  'eventSource': null,
                                                  'data': null };
 
-                         $("section[data-source='" + name + "'] > nav a").click( create_select_tab_handler(name) );
+                         $("section[data-source='" + name + "'] > header").click( create_toggle_data_source_handler(name) );
+                         $("section[data-source='" + name + "'] nav a").click( create_select_tab_handler(name) );
                          select_tab(name, 'seconds');
                      }
                  }
@@ -138,22 +144,46 @@
       {
           return function ( e )
           {
-              $("section[data-source='" + name + "'] > nav a").removeClass('active');
+              $("section[data-source='" + name + "'] nav a").removeClass('active');
               select_tab ( name, e.target.innerHTML );
               $(e.target).addClass ( 'active' );
               return false;
           }
       }
 
+      function create_toggle_data_source_handler ( name )
+      {
+          return function ( e )
+          {
+              if ( $("section[data-source='" + name + "'] .section-internal").is(':visible') )
+              {
+                  $("section[data-source='" + name + "'] .section-internal").hide();
+                  select_tab ( name, null );
+              }
+              else
+              {
+                  $("section[data-source='" + name + "'] .section-internal").show();
+                  select_tab ( name, 'seconds' );
+              }
+              return false;
+          }
+      }
+
       function select_tab ( source_name, tab_name )
       {
+          if ( known_sources[source_name]['eventSource'] != null )
+          {
+              known_sources[source_name]['eventSource'].close();
+              known_sources[source_name]['eventSource'] = null;
+          }
+
           if ( tab_name == 'info' )
           {
               refresh_source_info ( source_name );
           }
-          else
+          else if ( tab_name != null )
           {
-              $("section[data-source='" + source_name + "'] > div[class = 'content']").html ( '<div style="width: 100%; height: 200px;"></div>' );
+              $("section[data-source='" + source_name + "'] div[class = 'content']").html ( '<div style="width: 100%; height: 200px;"></div>' );
               $.ajax ( { url: '/data/source/' + source_name + '/' + tab_name + '/data'} ).done (
                   function(data)
                   {
@@ -163,12 +193,8 @@
                           flot_data.push ( [index, data[index]] );
                       }
                       known_sources[source_name]['data'] = flot_data;
-                      known_sources[source_name]['plot'] = $.plot ("section[data-source='" + source_name + "'] > div[class = 'content'] > div", [flot_data], {series: { shadowSize: 0 }, xaxis: { show: false}} );
+                      known_sources[source_name]['plot'] = $.plot ("section[data-source='" + source_name + "'] div[class = 'content'] > div", [flot_data], {series: { shadowSize: 0 }, xaxis: { show: false}} );
 
-                      if ( known_sources[source_name]['eventSource'] != null )
-                      {
-                          known_sources[source_name]['eventSource'].close();
-                      }
                       var eventSource = new EventSource('/live/' + source_name + '/' + tab_name)
                       eventSource.known_source = known_sources[source_name];
                       eventSource.onmessage = function(e)
@@ -219,7 +245,7 @@
                   text += '<tr><th>Values by day:</th><td>' + data['by_day_values'];
                   text += '<tr><th>Data directory:</th><td>' + data['directory'];
                   text += '</table>';
-                  $("section[data-source='" + source + "'] > div[class = 'content']").html ( text );
+                  $("section[data-source='" + source + "'] div[class = 'content']").html ( text );
               } );
       }
     </script>
