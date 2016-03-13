@@ -67,12 +67,24 @@
     <script src="/jquery.js"></script>
     <script src="/jquery.flot.min.js"></script>
     <script>
+    $.fn.scrollView = function () {
+        return this.each(function () {
+            $('html, body').animate({
+                scrollTop: $(this).offset().top
+            }, 1000);
+        });
+    }
+
     var known_sources = {};
     function show_error ( errorText )
     {
         console.log ( errorText );
         $('#error-content').html ( errorText );
-        $('#error').show ();
+        if ( $('#error').is(':hidden') )
+        {
+            $('#error').show ();
+            $('#error').scrollView();
+        }
     }
       $( document ).ready(function() {
           $( document ).ajaxError (
