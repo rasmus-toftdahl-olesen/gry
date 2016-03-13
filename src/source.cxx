@@ -122,39 +122,47 @@ void operator<< ( pion::tcp::stream_buffer & _stream, const std::string & _value
     }
 }
 
+void notifyListeners ( boost::recursive_mutex & _listenersLock, std::vector<pion::tcp::connection_ptr> & _listeners, double _value, int _number )
+{
+    boost::lock_guard<boost::recursive_mutex> guard ( _listenersLock );
+
+    for ( std::vector<pion::tcp::connection_ptr>::iterator it = _listeners.begin(); it != _listeners.end(); )
+    {
+        std::string valueAsString ( boost::lexical_cast<std::string>(_value) );
+        std::string numberAsString ( boost::lexical_cast<std::string>(_number) );
+        pion::tcp::stream_buffer stream ( *it );
+        stream << "data: [";
+        stream << valueAsString;
+        stream << ", ";
+        stream << numberAsString;
+        stream << "]\n\n";
+
+        if ( (*it)->is_open() )
+        {
+            ++it;
+        }
+        else
+        {
+            it = _listeners.erase(it);
+        }
+    }
+}
+
 Source::Timestamp Source::add ( double _value )
 {
     static boost::chrono::seconds one_second (1);
     static boost::chrono::minutes one_minute (1);
 
+    int added = 0;
     Timestamp now = TimeSource::now();
     {
         boost::lock_guard<boost::recursive_mutex> guard ( m_valuesLock );
 
-        m_bySecond.add ( now, _value );
+        added = m_bySecond.add ( now, _value );
     }
 
-    {
-        boost::lock_guard<boost::recursive_mutex> guard ( m_listenersLock );
+    notifyListeners(m_listenersLock, m_secondListeners, _value, added);
 
-        for ( std::vector<pion::tcp::connection_ptr>::iterator it = m_secondsListeners.begin(); it != m_secondsListeners.end(); )
-        {
-            std::string valueAsString ( boost::lexical_cast<std::string>(_value) );
-            pion::tcp::stream_buffer stream ( *it );
-            stream << "data: ";
-            stream << valueAsString;
-            stream << "\n\n";
-
-            if ( (*it)->is_open() )
-            {
-                ++it;
-            }
-            else
-            {
-                it = m_secondsListeners.erase(it);
-            }
-        }
-    }
     return now;
 }
 
@@ -206,7 +214,7 @@ void Source::writeByDayValues ( pion::http::response_writer_ptr _writer )
 }
 
 
-void Source::subscribeSeconds ( pion::tcp::connection_ptr & _conn )
+void subscribe ( pion::tcp::connection_ptr & _conn, boost::recursive_mutex & _listenersLock, std::vector<pion::tcp::connection_ptr> & _listeners )
 {
     _conn->set_lifecycle(pion::tcp::connection::LIFECYCLE_KEEPALIVE);
     pion::tcp::stream_buffer stream ( _conn );
@@ -214,10 +222,29 @@ void Source::subscribeSeconds ( pion::tcp::connection_ptr & _conn )
     stream << "Content-Type: text/event-stream\r\n";
     stream << "Connection: keep-alive\r\n";
     stream << "\r\n";
-
     {
-        boost::lock_guard<boost::recursive_mutex> guard ( m_listenersLock );
+        boost::lock_guard<boost::recursive_mutex> guard ( _listenersLock );
 
-        m_secondsListeners.push_back ( _conn );
+        _listeners.push_back ( _conn );
     }
+}
+
+void Source::subscribeSecond ( pion::tcp::connection_ptr & _conn )
+{
+    subscribe(_conn, m_listenersLock, m_secondListeners );
+}
+
+void Source::subscribeMinute ( pion::tcp::connection_ptr & _conn )
+{
+    subscribe(_conn, m_listenersLock, m_minuteListeners );
+}
+
+void Source::subscribeHour ( pion::tcp::connection_ptr & _conn )
+{
+    subscribe(_conn, m_listenersLock, m_hourListeners );
+}
+
+void Source::subscribeDay ( pion::tcp::connection_ptr & _conn )
+{
+    subscribe(_conn, m_listenersLock, m_dayListeners );
 }

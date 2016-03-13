@@ -17,7 +17,7 @@ namespace gry
         typedef boost::circular_buffer<double>::size_type SizeType;
 
         ValueBuffer ( size_t _numberOfValues, Duration _valueDuration );
-        void add ( Timestamp _timestamp, double _value );
+        int add ( Timestamp _timestamp, double _value );
         void setNext ( ValueBuffer * _nextBuffer );
         void dump ( std::ostream & _stream ) const;
         void save ( std::ostream & _stream ) const;

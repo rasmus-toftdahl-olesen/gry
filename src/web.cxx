@@ -232,7 +232,19 @@ void WebServer::requestHandlerLive(request_ptr & _request, connection_ptr & _con
 
             if ( valuesName == "seconds" )
             {
-                source->subscribeSeconds ( _conn );
+                source->subscribeSecond ( _conn );
+            }
+            else if ( valuesName == "minutes" )
+            {
+                source->subscribeMinute ( _conn );
+            }
+            else if ( valuesName == "hours" )
+            {
+                source->subscribeHour ( _conn );
+            }
+            else if ( valuesName == "days" )
+            {
+                source->subscribeDay ( _conn );
             }
             else
             {

@@ -25,8 +25,9 @@ void ValueBuffer::setNext ( ValueBuffer * _nextBuffer )
     m_next = _nextBuffer;
 }
 
-void ValueBuffer::add ( Timestamp _timestamp, double _value )
+int ValueBuffer::add ( Timestamp _timestamp, double _value )
 {
+    int valuesAdded = 0;
     if ( _timestamp < m_lastValue )
     {
         BOOST_THROW_EXCEPTION( TimestampIsOlderThanLastValueException() );
@@ -36,6 +37,7 @@ void ValueBuffer::add ( Timestamp _timestamp, double _value )
     {
         m_values.push_back( _value );
         m_lastValue = _timestamp;
+        valuesAdded = 1;
     }
     else
     {
@@ -43,6 +45,7 @@ void ValueBuffer::add ( Timestamp _timestamp, double _value )
         if ( sinceLastSample < m_valueDuration )
         {
             m_values.back() = _value;
+            valuesAdded = 0;
         }
         else
         {
@@ -51,6 +54,8 @@ void ValueBuffer::add ( Timestamp _timestamp, double _value )
                 m_values.push_back(_value);
 
                 sinceLastSample -= m_valueDuration;
+
+                valuesAdded += 1;
             }
             m_lastValue = _timestamp;
 
@@ -86,6 +91,7 @@ void ValueBuffer::add ( Timestamp _timestamp, double _value )
             }
         }
     }
+    return valuesAdded;
 }
 
 void ValueBuffer::dump ( std::ostream & _stream ) const

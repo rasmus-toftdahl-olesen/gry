@@ -157,12 +157,32 @@
                       {
                           known_sources[source_name]['eventSource'].close();
                       }
-                      /*
                       var eventSource = new EventSource('/live/' + source_name + '/' + tab_name)
                       eventSource.known_source = known_sources[source_name];
                       eventSource.onmessage = function(e)
                       {
-                          this.known_source['data'].push ( [known_source['data'].length, e.data] );
+                          var data = eval(e.data);
+                          var value = data[0];
+                          var number = data[1];
+                          if ( number == 0 )
+                          {
+
+                          }
+                          else
+                          {
+                              // Remove "number" values from start of array
+                              this.known_source['data'] = this.known_source['data'].slice(number);
+                              // Add value "number" times to the end of the array
+                              for ( var i = 0; i < number; i++ )
+                              {
+                                  this.known_source['data'].push ( [this.known_source['data'].length, value] );
+                              }
+                              // Fix all timestamp
+                              for ( var i = 0; i < this.known_source['data'].length; i++ )
+                              {
+                                  this.known_source['data'][i][0] = i;
+                              }
+                          }
                           this.known_source['plot'].setData ( [this.known_source['data']] );
                           this.known_source['plot'].draw();
                       }
@@ -171,7 +191,6 @@
                           show_error ( 'ERROR on ' + this.known_source['name'] + ' data sources\' live events.' );
                       }
                       known_sources[source_name]['eventSource'] = eventSource;
-                      */
                   } );
           }
       }
