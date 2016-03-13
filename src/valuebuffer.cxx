@@ -12,6 +12,10 @@ ValueBuffer::ValueBuffer ( size_t _numberOfValues, Duration _valueDuration )
     reset();
 }
 
+ValueBuffer::~ValueBuffer()
+{
+}
+
 void ValueBuffer::reset()
 {
     for ( SizeType i = 0; i < m_values.capacity(); i++ )

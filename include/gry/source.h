@@ -8,7 +8,7 @@
 #include <ostream>
 #include <pion/http/response_writer.hpp>
 #include <pion/tcp/connection.hpp>
-#include <gry/valuebuffer.h>
+#include <gry/webvaluebuffer.h>
 
 namespace gry
 {
@@ -30,16 +30,10 @@ namespace gry
         std::string m_name;
         boost::recursive_mutex m_valuesLock;
 
-        ValueBuffer m_bySecond;
-        ValueBuffer m_byMinute;
-        ValueBuffer m_byHour;
-        ValueBuffer m_byDay;
-
-        boost::recursive_mutex m_listenersLock;
-        std::vector<pion::tcp::connection_ptr> m_secondListeners;
-        std::vector<pion::tcp::connection_ptr> m_minuteListeners;
-        std::vector<pion::tcp::connection_ptr> m_hourListeners;
-        std::vector<pion::tcp::connection_ptr> m_dayListeners;
+        WebValueBuffer m_bySecond;
+        WebValueBuffer m_byMinute;
+        WebValueBuffer m_byHour;
+        WebValueBuffer m_byDay;
 
     public:
         Source ( const boost::filesystem::path & _directory );

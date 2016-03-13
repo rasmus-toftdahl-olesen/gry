@@ -5,7 +5,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
 endif()
 
-add_executable(gry_server src/valuebuffer.cxx src/utils.cxx src/source.cxx src/repository.cxx src/web.cxx src/udp.cxx src/main.cxx)
+add_executable(gry_server src/valuebuffer.cxx src/utils.cxx src/source.cxx src/repository.cxx src/web.cxx src/udp.cxx src/main.cxx src/webvaluebuffer.cxx)
 include_directories(include)
 
 find_package(Boost COMPONENTS filesystem thread system chrono unit_test_framework)
@@ -45,7 +45,7 @@ gry_generate_web(jquery.flot.min.js)
 
 include_directories(${CMAKE_BINARY_DIR})
 
-add_executable(gry_unit_tests src/valuebuffer.cxx src/source.cxx src/utils.cxx
+add_executable(gry_unit_tests src/valuebuffer.cxx src/source.cxx src/utils.cxx src/webvaluebuffer.cxx
   tests/main.cxx tests/SourceTests.cxx tests/ValueBufferTests.cxx tests/CircularBufferTests.cxx)
 target_link_libraries(gry_unit_tests ${Boost_LIBRARIES} ${PION_LIBRARIES})
 add_custom_target(check COMMAND ./gry_unit_tests DEPENDS gry_unit_tests)
