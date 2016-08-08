@@ -1,3 +1,6 @@
 #!/bin/sh
 
-echo -n "CPU `cat /proc/loadavg |cut -f1 -d' '`"| socat - udp-datagram:127.0.0.1:8124
+DATA="`hostname -s`.CPU `cat /proc/loadavg |cut -f1 -d' '`"
+HOST="127.0.0.1"
+
+echo -n $DATA | socat - udp-datagram:$HOST:8124
