@@ -33,6 +33,8 @@ namespace gry
         inline double operator[] ( SizeType _index ) const { return m_values[_index]; }
         inline ConstReference front() const { return m_values.front(); }
         inline ConstReference back() const { return m_values.back(); }
+        inline Duration bufferDuration() const { return m_values.size() * m_valueDuration; }
+        Duration timeSinceLastValue() const;
 
     protected:
         Duration m_valueDuration;

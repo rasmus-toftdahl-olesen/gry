@@ -24,6 +24,18 @@ void ValueBuffer::reset()
     }
 }
 
+ValueBuffer::Duration ValueBuffer::timeSinceLastValue() const
+{
+    if ( m_lastValue == Timestamp::min() )
+    {
+        return ValueBuffer::Duration(-1);
+    }
+    else
+    {
+        return TimeSource::now() - m_lastValue;
+    }
+}
+
 void ValueBuffer::setNext ( ValueBuffer * _nextBuffer )
 {
     m_next = _nextBuffer;

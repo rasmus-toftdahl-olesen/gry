@@ -39,6 +39,39 @@ BOOST_FIXTURE_TEST_CASE ( TestValueBufferIsAllZeroOnCreation, ValueBufferFixture
     }
 }
 
+BOOST_FIXTURE_TEST_CASE ( TestValueBufferDuration, ValueBufferFixture )
+{
+    BOOST_CHECK_EQUAL ( this->bufferDuration(), boost::chrono::seconds(10) );
+}
+
+ValueBuffer::Duration abs(ValueBuffer::Duration duration)
+{
+    ValueBuffer::Duration ret(abs(duration.count()));
+    return ret;
+}
+
+BOOST_FIXTURE_TEST_CASE ( TestAbsTestUtilityFunction, ValueBufferFixture )
+{
+    BOOST_CHECK_EQUAL ( ValueBuffer::Duration(1), abs(ValueBuffer::Duration(-1)) );
+    BOOST_CHECK_EQUAL ( boost::chrono::seconds(1), abs(boost::chrono::seconds(-1)) );
+}
+
+BOOST_FIXTURE_TEST_CASE ( TestValueBufferTimeSinceLastValue, ValueBufferFixture )
+{
+    // No values added yet, time since last value should be -1
+    BOOST_CHECK_EQUAL ( this->timeSinceLastValue(), ValueBuffer::Duration(-1) );
+
+    this->add ( TimeSource::now(), 1.0 );
+    BOOST_CHECK_LT ( abs(this->timeSinceLastValue() - boost::chrono::seconds(0)), boost::chrono::milliseconds(1) );
+
+    boost::this_thread::sleep(boost::posix_time::seconds(1));
+
+    BOOST_CHECK_LT ( abs(this->timeSinceLastValue() - boost::chrono::seconds(1)), boost::chrono::milliseconds(1) );
+    this->add ( TimeSource::now(), 2.0 );
+
+    BOOST_CHECK_LT ( abs(this->timeSinceLastValue()), boost::chrono::milliseconds(1) );
+}
+
 BOOST_FIXTURE_TEST_CASE ( TestValueBufferAddFirstSample, ValueBufferFixture )
 {
     BOOST_CHECK_EQUAL ( this->m_values.back(), 0 );
