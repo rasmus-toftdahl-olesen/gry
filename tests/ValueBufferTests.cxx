@@ -35,7 +35,7 @@ BOOST_FIXTURE_TEST_CASE ( TestValueBufferIsAllZeroOnCreation, ValueBufferFixture
     BOOST_CHECK_EQUAL ( this->m_values.size(), 10 );
     for ( size_t i = 0; i < 10; i++ )
     {
-        BOOST_CHECK_EQUAL ( this->m_values[i], 0 );
+        BOOST_CHECK ( isnan(this->m_values[i]) );
     }
 }
 
@@ -74,7 +74,7 @@ BOOST_FIXTURE_TEST_CASE ( TestValueBufferTimeSinceLastValue, ValueBufferFixture 
 
 BOOST_FIXTURE_TEST_CASE ( TestValueBufferAddFirstSample, ValueBufferFixture )
 {
-    BOOST_CHECK_EQUAL ( this->m_values.back(), 0 );
+    BOOST_CHECK ( isnan(this->m_values.back()) );
 
     Timestamp now = TimeSource::now();
 
@@ -84,7 +84,7 @@ BOOST_FIXTURE_TEST_CASE ( TestValueBufferAddFirstSample, ValueBufferFixture )
 
     for ( size_t i = 0; i < this->m_values.size() - 1; ++i )
     {
-        BOOST_CHECK_EQUAL ( this->m_values[i], 0 );
+        BOOST_CHECK ( isnan(this->m_values[i]) );
     }
 
     BOOST_CHECK_EQUAL ( this->m_lastValue, now );
@@ -92,7 +92,7 @@ BOOST_FIXTURE_TEST_CASE ( TestValueBufferAddFirstSample, ValueBufferFixture )
 
 BOOST_FIXTURE_TEST_CASE ( TestValueBufferSamplesAddedWithinTheSecondMeansThatTheLastValueWins, ValueBufferFixture )
 {
-    BOOST_CHECK_EQUAL ( this->m_values.back(), 0 );
+    BOOST_CHECK ( isnan(this->m_values.back()) );
 
     Timestamp now = TimeSource::now();
 
@@ -108,7 +108,7 @@ BOOST_FIXTURE_TEST_CASE ( TestValueBufferSamplesAddedWithinTheSecondMeansThatThe
 
     for ( size_t i = 0; i < this->m_values.size() - 1; ++i )
     {
-        BOOST_CHECK_EQUAL ( this->m_values[i], 0 );
+        BOOST_CHECK ( isnan(this->m_values[i]) );
     }
 }
 
@@ -128,7 +128,7 @@ BOOST_FIXTURE_TEST_CASE ( TestValueBufferSampleAddedEverySecond, ValueBufferFixt
 
     for ( size_t i = 0; i < this->m_values.size() - 4; ++i )
     {
-        BOOST_CHECK_EQUAL ( this->m_values[i], 0 );
+        BOOST_CHECK ( isnan(this->m_values[i]) );
     }
 }
 
@@ -148,7 +148,7 @@ BOOST_FIXTURE_TEST_CASE ( TestValueBufferaAddWithFiveSecondInterval, ValueBuffer
 
     for ( size_t i = 0; i < this->m_values.size() - 6; ++i )
     {
-        BOOST_CHECK_EQUAL ( this->m_values[i], 0 );
+        BOOST_CHECK ( isnan(this->m_values[i]) );
     }
 }
 
@@ -171,6 +171,6 @@ BOOST_FIXTURE_TEST_CASE ( TestValueBufferaAddWithMoreTimeThanTheBufferCanHold, V
     BOOST_CHECK_EQUAL ( this->m_fixtureNext->values()[9], 2 );
     for ( size_t i = 0; i < this->m_fixtureNext->values().size() - 2; ++i )
     {
-        BOOST_CHECK_EQUAL ( this->m_fixtureNext->values()[i], 0 );
+        BOOST_CHECK ( isnan(this->m_fixtureNext->values()[i]) );
     }
 }

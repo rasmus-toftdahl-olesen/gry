@@ -24,6 +24,7 @@ namespace gry
         void dump ( std::ostream & _stream ) const;
         void save ( std::ostream & _stream ) const;
         void load ( std::istream & _stream );
+        void setLastValueAt ( Timestamp _lastValueAt );
         void reset();
         inline Iterator begin() { return m_values.begin(); }
         inline Iterator end() { return m_values.end(); }
@@ -34,6 +35,7 @@ namespace gry
         inline ConstReference front() const { return m_values.front(); }
         inline ConstReference back() const { return m_values.back(); }
         inline Duration bufferDuration() const { return m_values.size() * m_valueDuration; }
+        inline Timestamp lastValueAt() const { return m_lastValue; }
         Duration timeSinceLastValue() const;
 
     protected:

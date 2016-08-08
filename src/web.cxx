@@ -164,6 +164,10 @@ void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
             writer->write ( source->numberOfByHourValues() );
             writer->write ( ", \"by_day_values\": " );
             writer->write ( source->numberOfByDayValues() );
+            writer->write ( ", \"time_since_last_value\": " );
+            boost::chrono::seconds inSeconds;
+            inSeconds = boost::chrono::duration_cast<boost::chrono::seconds>(source->timeSinceLastValue());
+            writer->write ( inSeconds.count() );
             writer->write ( " }" );
         }
         else if ( sourceCmd == "add" )

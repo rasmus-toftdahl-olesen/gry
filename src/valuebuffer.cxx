@@ -20,7 +20,7 @@ void ValueBuffer::reset()
 {
     for ( SizeType i = 0; i < m_values.capacity(); i++ )
     {
-        m_values.push_back(0);
+        m_values.push_back(std::numeric_limits<double>::quiet_NaN());
     }
 }
 
@@ -136,5 +136,22 @@ void ValueBuffer::load ( std::istream & _stream )
     for ( Iterator it = begin(); it != end(); ++it )
     {
         _stream.read ( reinterpret_cast<char*>( &*it ), sizeof(double) );
+    }
+}
+
+void ValueBuffer::setLastValueAt(Timestamp _lastValueAt)
+{
+    m_lastValue = _lastValueAt;
+    if ( timeSinceLastValue() > bufferDuration() )
+    {
+        reset();
+    }
+    else
+    {
+        int valuesToAdd = timeSinceLastValue() / m_valueDuration;
+        for ( int i = 0; i < valuesToAdd; i++ )
+        {
+            m_values.push_back(std::numeric_limits<double>::quiet_NaN());
+        }
     }
 }

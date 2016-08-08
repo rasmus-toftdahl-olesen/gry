@@ -58,7 +58,7 @@ BOOST_FIXTURE_TEST_CASE ( TestSourceDataIsAllNulUponCreation, F )
 
 BOOST_FIXTURE_TEST_CASE ( TestSourceDataAddFirstSample, F )
 {
-    BOOST_CHECK_EQUAL ( this->m_bySecond.back(), 0 );
+    BOOST_CHECK ( isnan(this->m_bySecond.back()) );
 
     this->add ( 1 );
 
@@ -66,13 +66,13 @@ BOOST_FIXTURE_TEST_CASE ( TestSourceDataAddFirstSample, F )
 
     for ( size_t i = 0; i < this->m_bySecond.size() - 1; ++i )
     {
-        BOOST_CHECK_EQUAL ( this->m_bySecond[i], 0 );
+        BOOST_CHECK ( isnan(this->m_bySecond[i]) );
     }
 }
 
 BOOST_FIXTURE_TEST_CASE ( TestSourceDataAddedWithinTheSecondMeansThatTheLastValueWins, F )
 {
-    BOOST_CHECK_EQUAL ( this->m_bySecond.back(), 0 );
+    BOOST_CHECK ( isnan(this->m_bySecond.back() ) );
 
     this->add ( 1 );
     this->add ( 2 );
@@ -83,7 +83,7 @@ BOOST_FIXTURE_TEST_CASE ( TestSourceDataAddedWithinTheSecondMeansThatTheLastValu
 
     for ( size_t i = 0; i < this->m_bySecond.size() - 1; ++i )
     {
-        BOOST_CHECK_EQUAL ( this->m_bySecond[i], 0 );
+        BOOST_CHECK ( isnan(this->m_bySecond[i]) );
     }
 }
 
@@ -110,7 +110,7 @@ BOOST_FIXTURE_TEST_CASE ( TestSourceDataAddEverySecond, F )
 
     for ( size_t i = 0; i < this->m_bySecond.size() - 4; ++i )
     {
-        BOOST_CHECK_EQUAL ( this->m_bySecond[i], 0 );
+        BOOST_CHECK ( isnan(this->m_bySecond[i]) );
     }
 }
 
@@ -131,6 +131,6 @@ BOOST_FIXTURE_TEST_CASE ( TestSourceDataAddWithFiveSecondInterval, F )
 
     for ( size_t i = 0; i < this->m_bySecond.size() - 6; ++i )
     {
-        BOOST_CHECK_EQUAL ( this->m_bySecond[i], 0 );
+        BOOST_CHECK ( isnan(this->m_bySecond[i]) );
     }
 }

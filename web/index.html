@@ -239,6 +239,7 @@
               function(data)
               {
                   var text = '<table>';
+                  text += '<tr><th>Seconds since last value:</th><td>' + data['time_since_last_value'];
                   text += '<tr><th>Values by second:</th><td>' + data['by_second_values'];
                   text += '<tr><th>Values by minute:</th><td>' + data['by_minute_values'];
                   text += '<tr><th>Values by hour:</th><td>' + data['by_hour_values'];

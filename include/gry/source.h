@@ -54,6 +54,7 @@ namespace gry
         int numberOfByMinuteValues();
         int numberOfByHourValues();
         int numberOfByDayValues();
+        Duration timeSinceLastValue();
 
         Timestamp add ( double _value );
         void refresh( bool _intial );
@@ -71,5 +72,7 @@ namespace gry
     protected:
         void saveValues ( const std::string & _filename, const ValueBuffer & _values ) const;
         void loadValues ( const std::string & _filename, ValueBuffer & _values ) const;
+        void saveLastValueAt ( const std::string & _filename, const ValueBuffer & _values ) const;
+        void loadLastValueAt ( const std::string & _filename, ValueBuffer & _values ) const;
     };
 }
