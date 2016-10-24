@@ -1,3 +1,4 @@
+#include <boost/array.hpp>
 #include <boost/asio/ip/udp.hpp>
 #include <pion/scheduler.hpp>
 #include <log4cpp/Category.hh>
