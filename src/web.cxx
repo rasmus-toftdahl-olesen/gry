@@ -15,6 +15,7 @@ WebServer::WebServer( pion::scheduler & _scheduler, ushort _portNumber )
     : m_logger ( log4cpp::Category::getInstance("gry.web") ),
       m_server(_scheduler, _portNumber)
 {
+    //WebServer & me = *this;
     m_server.add_resource("/data",
                           boost::bind(&WebServer::requestHandler, this, _1, _2));
     m_server.add_resource("/live",
@@ -31,7 +32,7 @@ void WebServer::start()
 #ifdef GRY_INCLUDE_STATIC_WEB
 #include "generated_web.cxx"
 
-void WebServer::requestHandlerStatic(request_ptr & _request, connection_ptr & _conn)
+void WebServer::requestHandlerStatic(const request_ptr & _request, const connection_ptr & _conn)
 {
     response_writer_ptr writer( response_writer::create(_conn, *_request,
                                                         boost::bind(&connection::finish, _conn)));
@@ -79,7 +80,7 @@ void readFile ( response_writer_ptr & _writer, const std::string & _filename )
     }
 }
 
-void WebServer::requestHandlerStatic(request_ptr & _request, connection_ptr & _conn)
+void WebServer::requestHandlerStatic(const request_ptr & _request, const connection_ptr & _conn)
 {
     response_writer_ptr writer( response_writer::create(_conn, *_request,
                                                         boost::bind(&connection::finish, _conn)));
@@ -108,7 +109,7 @@ void WebServer::requestHandlerStatic(request_ptr & _request, connection_ptr & _c
 }
 #endif
 
-void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
+void WebServer::requestHandler(const request_ptr & _request, const connection_ptr & _conn)
 {
     Repository & repo = Repository::instance();
     SourcePtr source;
@@ -218,7 +219,7 @@ void WebServer::requestHandler(request_ptr & _request, connection_ptr & _conn)
     writer->send();
 }
 
-void WebServer::requestHandlerLive(request_ptr & _request, connection_ptr & _conn)
+void WebServer::requestHandlerLive(const request_ptr & _request, const connection_ptr & _conn)
 {
     Repository & repo = Repository::instance();
     SourcePtr source;

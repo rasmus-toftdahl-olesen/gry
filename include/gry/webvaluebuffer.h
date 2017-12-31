@@ -17,6 +17,6 @@ namespace gry
         virtual ~WebValueBuffer();
 
         virtual int add ( Timestamp _timestamp, double _value );
-        void subscribe ( pion::tcp::connection_ptr & _conn );
+        void subscribe ( const pion::tcp::connection_ptr & _conn );
     };
 }

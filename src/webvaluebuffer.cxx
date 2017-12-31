@@ -48,7 +48,7 @@ int WebValueBuffer::add ( Timestamp _timestamp, double _value )
     return numberAdded;
 }
 
-void WebValueBuffer::subscribe ( pion::tcp::connection_ptr & _conn )
+void WebValueBuffer::subscribe ( const pion::tcp::connection_ptr & _conn )
 {
     _conn->set_lifecycle(pion::tcp::connection::LIFECYCLE_KEEPALIVE);
     pion::tcp::stream_buffer stream ( _conn );
