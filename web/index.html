@@ -118,11 +118,12 @@
                          known_sources[name] = { 'name' : name,
                                                  'plot': null,
                                                  'eventSource': null,
+                                                 'timer': null,
                                                  'data': null };
 
                          $("section[data-source='" + name + "'] > header").click( create_toggle_data_source_handler(name) );
                          $("section[data-source='" + name + "'] nav a").click( create_select_tab_handler(name) );
-                         select_tab(name, 'seconds');
+                         //select_tab(name, 'seconds');
                      }
                  }
                  for ( var name in known_sources )
@@ -132,6 +133,10 @@
                          if ( known_sources[name]['eventSource'] != null )
                          {
                              known_sources[name]['eventSource'].close();
+                         }
+                         if ( known_sources[name]['timer'] != null )
+                         {
+                             clearInterval ( known_sources[name]['timer'] );
                          }
                          delete known_sources[name];
                          $("section[data-source='" + name + "']").remove();
@@ -176,6 +181,11 @@
               known_sources[source_name]['eventSource'].close();
               known_sources[source_name]['eventSource'] = null;
           }
+          if ( known_sources[source_name]['timer'] != null )
+          {
+              clearInterval ( known_sources[source_name]['timer'] );
+              known_sources[source_name]['timer'] = null;
+          }
 
           if ( tab_name == 'info' )
           {
@@ -194,7 +204,8 @@
                       }
                       known_sources[source_name]['data'] = flot_data;
                       known_sources[source_name]['plot'] = $.plot ("section[data-source='" + source_name + "'] div[class = 'content'] > div", [flot_data], {series: { shadowSize: 0 }, xaxis: { show: false}} );
-
+                      known_sources[source_name]['timer'] = setInterval ( function() { select_tab(source_name, tab_name); }, 5000 );
+/*
                       var eventSource = new EventSource('/live/' + source_name + '/' + tab_name)
                       eventSource.known_source = known_sources[source_name];
                       eventSource.onmessage = function(e)
@@ -228,7 +239,8 @@
                       {
                           show_error ( 'ERROR on ' + this.known_source['name'] + ' data sources\' live events.' );
                       }
-                      known_sources[source_name]['eventSource'] = eventSource;
+                                                   known_sources[source_name]['eventSource'] = eventSource;
+                                                   */
                   } );
           }
       }

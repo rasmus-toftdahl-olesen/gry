@@ -175,28 +175,37 @@ Source::Timestamp Source::add ( double _value )
 
 void writeValues ( pion::http::response_writer_ptr _writer, const ValueBuffer & _buffer )
 {
-    bool first = true;
-    _writer->write ( "[" );
-    for ( ValueBuffer::ConstIterator it = _buffer.begin(); it != _buffer.end(); ++it )
+    try
     {
-        if ( first )
+        bool first = true;
+        _writer->write ( "[" );
+        for ( ValueBuffer::ConstIterator it = _buffer.begin(); it != _buffer.end(); ++it )
         {
-            first = false;
+            if ( first )
+            {
+                first = false;
+            }
+            else
+            {
+                _writer->write ( "," );
+            }
+            if ( isnan(*it) )
+            {
+                _writer->write ( "null" );
+            }
+            else
+            {
+                _writer->write ( *it );
+            }
         }
-        else
-        {
-            _writer->write ( "," );
-        }
-        if ( isnan(*it) )
-        {
-            _writer->write ( "null" );
-        }
-        else
-        {
-            _writer->write ( *it );
-        }
+        _writer->write ( "]\n" );
     }
-    _writer->write ( "]\n" );
+    catch ( const std::exception & ex )
+    {
+        std::cout << "exception thrown" << std::endl;
+        std::cout << ex.what() << std::endl;
+        //std::cout << ex << std::endl;
+    }
 }
 
 void Source::writeBySecondValues ( pion::http::response_writer_ptr _writer )
