@@ -10,6 +10,6 @@ addons:
       - cmake
 script:
   - gcc -v && g++ -v && cmake --version
-  - cmake
+  - cmake .
   - make
   - make check
