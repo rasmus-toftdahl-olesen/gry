@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <gry/webvaluebuffer.h>
 #include <pion/tcp/stream.hpp>
 #include <boost/lexical_cast.hpp>
@@ -48,7 +50,7 @@ int WebValueBuffer::add ( Timestamp _timestamp, double _value )
     return numberAdded;
 }
 
-void WebValueBuffer::subscribe ( const pion::tcp::connection_ptr & _conn )
+void WebValueBuffer::subscribe ( ConnectionPtr _conn )
 {
     _conn->set_lifecycle(pion::tcp::connection::LIFECYCLE_KEEPALIVE);
     pion::tcp::stream_buffer stream ( _conn );

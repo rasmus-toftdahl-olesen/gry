@@ -1,10 +1,10 @@
+#include "config.h"
+
 #include <gry/web.h>
 #include <gry/repository.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/chrono/chrono_io.hpp>
 #include <pion/http/response_writer.hpp>
-
-#include "config.h"
 
 using namespace gry;
 using namespace pion::http;

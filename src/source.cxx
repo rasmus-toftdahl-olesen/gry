@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <gry/source.h>
 #include <gry/utils.h>
 #include <boost/thread/locks.hpp>

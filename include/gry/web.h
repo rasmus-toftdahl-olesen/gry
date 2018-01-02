@@ -6,8 +6,13 @@
 
 namespace gry
 {
+#ifdef GRY_NON_CONST_PION_PTRS
+    typedef pion::tcp::connection_ptr & ConnectionPtr;
+    typedef pion::http::request_ptr & RequestPtr;
+#else
     typedef const pion::tcp::connection_ptr & ConnectionPtr;
     typedef const pion::http::request_ptr & RequestPtr;
+#endif
 
     class WebServer
     {

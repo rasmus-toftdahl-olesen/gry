@@ -4,3 +4,5 @@
 
 #define GRY_WEB_PORT ${GRY_WEB_PORT}
 #define GRY_UDP_PORT ${GRY_UDP_PORT}
+
+#cmakedefine GRY_NON_CONST_PION_PTRS
