@@ -64,10 +64,10 @@ namespace gry
         void writeByHourValues ( pion::http::response_writer_ptr _writer );
         void writeByDayValues ( pion::http::response_writer_ptr _writer );
 
-        void subscribeSecond ( const pion::tcp::connection_ptr & _conn );
-        void subscribeMinute ( const pion::tcp::connection_ptr & _conn );
-        void subscribeHour ( const pion::tcp::connection_ptr & _conn );
-        void subscribeDay ( const pion::tcp::connection_ptr & _conn );
+        void subscribeSecond ( ConnectionPtr _conn );
+        void subscribeMinute ( ConnectionPtr _conn );
+        void subscribeHour ( ConnectionPtr _conn );
+        void subscribeDay ( ConnectionPtr _conn );
 
     protected:
         void saveValues ( const std::string & _filename, const ValueBuffer & _values ) const;

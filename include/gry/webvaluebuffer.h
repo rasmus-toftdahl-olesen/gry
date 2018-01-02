@@ -1,4 +1,5 @@
 #include <gry/valuebuffer.h>
+#include <gry/web.h>
 #include <boost/thread/recursive_mutex.hpp>
 #include <pion/http/response_writer.hpp>
 #include <pion/tcp/connection.hpp>
@@ -17,6 +18,6 @@ namespace gry
         virtual ~WebValueBuffer();
 
         virtual int add ( Timestamp _timestamp, double _value );
-        void subscribe ( const pion::tcp::connection_ptr & _conn );
+        void subscribe ( ConnectionPtr _conn );
     };
 }

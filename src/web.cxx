@@ -33,7 +33,7 @@ void WebServer::start()
 #ifdef GRY_INCLUDE_STATIC_WEB
 #include "generated_web.cxx"
 
-void WebServer::requestHandlerStatic(const request_ptr & _request, const connection_ptr & _conn)
+void WebServer::requestHandlerStatic(RequestPtr _request, ConnectionPtr _conn)
 {
     response_writer_ptr writer( response_writer::create(_conn, *_request,
                                                         boost::bind(&connection::finish, _conn)));
@@ -81,7 +81,7 @@ void readFile ( response_writer_ptr & _writer, const std::string & _filename )
     }
 }
 
-void WebServer::requestHandlerStatic(const request_ptr & _request, const connection_ptr & _conn)
+void WebServer::requestHandlerStatic(RequestPtr _request, ConnectionPtr _conn)
 {
     response_writer_ptr writer( response_writer::create(_conn, *_request,
                                                         boost::bind(&connection::finish, _conn)));
@@ -110,7 +110,7 @@ void WebServer::requestHandlerStatic(const request_ptr & _request, const connect
 }
 #endif
 
-void WebServer::requestHandler(const request_ptr & _request, const connection_ptr & _conn)
+void WebServer::requestHandler(RequestPtr _request, ConnectionPtr _conn)
 {
     try
     {
@@ -228,7 +228,7 @@ void WebServer::requestHandler(const request_ptr & _request, const connection_pt
     }
 }
 
-void WebServer::requestHandlerLive(const request_ptr & _request, const connection_ptr & _conn)
+void WebServer::requestHandlerLive(RequestPtr _request, ConnectionPtr _conn)
 {
     try
     {

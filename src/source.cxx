@@ -237,22 +237,22 @@ void Source::writeByDayValues ( pion::http::response_writer_ptr _writer )
 }
 
 
-void Source::subscribeSecond ( const pion::tcp::connection_ptr & _conn )
+void Source::subscribeSecond ( ConnectionPtr _conn )
 {
     m_bySecond.subscribe ( _conn );
 }
 
-void Source::subscribeMinute ( const pion::tcp::connection_ptr & _conn )
+void Source::subscribeMinute ( ConnectionPtr _conn )
 {
     m_byMinute.subscribe ( _conn );
 }
 
-void Source::subscribeHour ( const pion::tcp::connection_ptr & _conn )
+void Source::subscribeHour ( ConnectionPtr _conn )
 {
     m_byHour.subscribe ( _conn );
 }
 
-void Source::subscribeDay ( const pion::tcp::connection_ptr & _conn )
+void Source::subscribeDay ( ConnectionPtr _conn )
 {
     m_byDay.subscribe ( _conn );
 }
