@@ -158,18 +158,20 @@ BOOST_FIXTURE_TEST_CASE ( TestValueBufferaAddWithMoreTimeThanTheBufferCanHold, V
 
     this->add ( now, 1 );
     this->add ( now + boost::chrono::seconds(1), 1 );
-    this->add ( now + boost::chrono::seconds(65), 2 );
+    this->add ( now + boost::chrono::seconds(125), 2 );
 
     for ( size_t i = 0; i < this->m_values.size(); ++i )
     {
         BOOST_CHECK_EQUAL ( this->m_values[i], 2 );
     }
 
+    //this->dump(std::cout);
     //this->m_fixtureNext->dump(std::cout);
 
-    BOOST_CHECK_EQUAL ( this->m_fixtureNext->values()[8], 1 );
+    BOOST_CHECK_EQUAL ( this->m_fixtureNext->values()[7], 1 );
+    BOOST_CHECK_EQUAL ( this->m_fixtureNext->values()[8], 2 );
     BOOST_CHECK_EQUAL ( this->m_fixtureNext->values()[9], 2 );
-    for ( size_t i = 0; i < this->m_fixtureNext->values().size() - 2; ++i )
+    for ( size_t i = 0; i < this->m_fixtureNext->values().size() - 3; ++i )
     {
         BOOST_CHECK ( std::isnan(this->m_fixtureNext->values()[i]) );
     }
