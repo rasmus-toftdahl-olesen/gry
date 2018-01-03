@@ -13,7 +13,6 @@ namespace gry
         typedef TimeSource::duration Duration;
         typedef boost::circular_buffer<double>::iterator Iterator;
         typedef boost::circular_buffer<double>::const_iterator ConstIterator;
-        typedef boost::circular_buffer<double>::const_reference ConstReference;
         typedef boost::circular_buffer<double>::size_type SizeType;
 
         ValueBuffer ( size_t _numberOfValues, Duration _valueDuration );
@@ -32,8 +31,8 @@ namespace gry
         inline ConstIterator end() const { return m_values.end(); }
         inline SizeType size() const { return m_values.size(); }
         inline double operator[] ( SizeType _index ) const { return m_values[_index]; }
-        inline ConstReference front() const { return m_values.front(); }
-        inline ConstReference back() const { return m_values.back(); }
+        inline double front() const { return m_values.front(); }
+        inline double back() const { return m_values.back(); }
         inline Duration bufferDuration() const { return m_values.size() * m_valueDuration; }
         inline Timestamp lastValueAt() const { return m_lastValue; }
         Duration timeSinceLastValue() const;
