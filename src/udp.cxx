@@ -28,7 +28,7 @@ void UdpServer::handleReceive( const boost::system::error_code& error,
         std::string input;
         std::copy( m_buffer.begin(), m_buffer.begin() + _bytesTransfered, std::back_inserter(input) );
 
-        if (input.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890_ .\r\n") != std::string::npos)
+        if (input.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890_ .-\r\n") != std::string::npos)
         {
             m_logger << log4cpp::Priority::WARN << "Ignoring bad input data (" << input.length() << " characters): non-ascii data detected.";
         }
@@ -38,7 +38,7 @@ void UdpServer::handleReceive( const boost::system::error_code& error,
             std::string::size_type index = input.find(' ');
             if ( index != std::string::npos )
             {
-                std::string::size_type endOfValue = input.find_first_not_of("0123456789.", index + 1);
+                std::string::size_type endOfValue = input.find_first_not_of("0123456789.-", index + 1);
                 if ( endOfValue == std::string::npos )
                 {
                     endOfValue = input.length();
