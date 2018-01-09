@@ -50,7 +50,8 @@ gry_generate_web(jquery.flot.min.js)
 include_directories(${CMAKE_BINARY_DIR})
 
 add_executable(gry_unit_tests src/valuebuffer.cxx src/source.cxx src/utils.cxx src/webvaluebuffer.cxx
-  tests/main.cxx tests/SourceTests.cxx tests/ValueBufferTests.cxx tests/CircularBufferTests.cxx)
+  tests/main.cxx tests/SourceTests.cxx tests/ValueBufferTests.cxx tests/CircularBufferTests.cxx
+  tests/ValueBufferRealWorldTests.cxx)
 target_link_libraries(gry_unit_tests ${Boost_LIBRARIES} ${PION_LIBRARIES})
 add_custom_target(check COMMAND ./gry_unit_tests DEPENDS gry_unit_tests)
 add_custom_target(run COMMAND ./gry_server DEPENDS gry_server)

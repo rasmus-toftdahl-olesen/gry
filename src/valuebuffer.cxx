@@ -51,6 +51,7 @@ int ValueBuffer::add ( Timestamp _timestamp, double _value )
 
     if ( m_lastValue == Timestamp::min() )
     {
+        //std::cout << "[" << m_valueDuration << "] Adding value " << _value << " as the first value." << std::endl;
         m_values.push_back( _value );
         m_lastValue = _timestamp;
         valuesAdded = 1;
@@ -74,36 +75,40 @@ int ValueBuffer::add ( Timestamp _timestamp, double _value )
                 valuesAdded += 1;
             }
             m_lastValue = _timestamp;
-
-            if ( m_next )
+        }
+    }
+    if ( m_next )
+    {
+        if ( m_next->m_lastValue == Timestamp::min() )
+        {
+            //std::cout << "ADDING first value " << _value << std::endl;
+            m_next->add ( _timestamp, _value );
+        }
+        else
+        {
+            Duration sinceNext = _timestamp - m_next->m_lastValue;
+            if ( sinceNext > m_next->m_valueDuration )
             {
-                if ( m_next->m_lastValue == Timestamp::min() )
+                size_t neededSamples = m_next->m_valueDuration / m_valueDuration;
+                //std::cout << "Needed samples " << neededSamples << std::endl;
+                double total = 0;
+                size_t start = 0;
+                size_t samples = m_values.size();
+                if ( neededSamples < m_values.size() )
                 {
-                    m_next->add ( _timestamp, _value );
+                    start = m_values.size() - neededSamples;
+                    samples = neededSamples;
                 }
-                else
+                //std::cout << "start " << start << std::endl;
+                //std::cout << "samples " << samples << std::endl;
+                for ( size_t i = start; i < start + samples; ++i )
                 {
-                    Duration sinceNext = _timestamp - m_next->m_lastValue;
-                    if ( sinceNext > m_next->m_valueDuration )
-                    {
-                        size_t neededSamples = m_next->m_valueDuration / m_valueDuration;
-                        double total = 0;
-                        size_t start = 0;
-                        size_t samples = m_values.size();
-                        if ( neededSamples < m_values.size() )
-                        {
-                            start = m_values.size() - neededSamples;
-                            samples = neededSamples;
-                        }
-                        for ( size_t i = start; i < samples; ++i )
-                        {
-                            total += m_values[i];
-                        }
-                        double average = total / ((double) samples);
+                    total += m_values[i];
+                }
+                //std::cout << "total " << total << std::endl;
+                double average = total / ((double) samples);
 
-                        m_next->add ( _timestamp, average );
-                    }
-                }
+                m_next->add ( _timestamp, average );
             }
         }
     }
@@ -123,6 +128,8 @@ void ValueBuffer::dump ( std::ostream & _stream ) const
 
 void ValueBuffer::save ( std::ostream & _stream ) const
 {
+    assert ( m_values.capacity() == m_values.size() );
+
     for ( ConstIterator it = begin(); it != end(); ++it )
     {
         _stream.write ( reinterpret_cast<const char*>(&*it), sizeof(double) );
@@ -133,10 +140,17 @@ void ValueBuffer::load ( std::istream & _stream )
 {
     reset();
 
+    assert ( m_values.capacity() == m_values.size() );
+
+    size_t numberRead = 0;
     for ( Iterator it = begin(); it != end(); ++it )
     {
         _stream.read ( reinterpret_cast<char*>( &*it ), sizeof(double) );
+        numberRead ++;
     }
+
+    //std::cout << "Loading " << m_values.size() << " " << numberRead << std::endl;
+    assert ( m_values.size() == numberRead );
 }
 
 void ValueBuffer::setLastValueAt(Timestamp _lastValueAt)
